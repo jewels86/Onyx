@@ -1,4 +1,6 @@
-﻿using Onyx.Defense;
+﻿using System.Reflection;
+using System.Reflection.Emit;
+using Onyx.Defense;
 using Onyx.Attack;
 using Onyx.Shared;
 
@@ -10,7 +12,7 @@ public class MyClass(int x)
 
     public void PrintX()
     {
-        Console.WriteLine(_x);
+        Console.WriteLine(_x.ToString());
     }
 }
 
@@ -32,5 +34,28 @@ class Program
         {
             Console.WriteLine($"Field: {fieldPackage.Name}, Value: {fieldPackage.Value}, Access: {fieldPackage.Access}");
         }
+
+        var tb = ClassBuilder.CreateTypeBuilder("assembly0", "module0", "EvilInt");
+
+        var method = ClassBuilder.MethodBuilder(
+            tb, 
+            ClassBuilder.OperatorToString(OperatorType.Implicit), 
+            typeof(int), 
+            [tb], 
+            ClassBuilder.OperatorMethodAttributes());
+        var il = method.GetILGenerator();
+        il.EmitWriteLine("This is an evil implicit operator");
+        il.Emit(OpCodes.Ldc_I4, 42);
+        il.Emit(OpCodes.Ret);
+        
+        Type evilIntType = ClassBuilder.Finalize(tb);
+        dynamic evilInt = ClassBuilder.New(evilIntType)!;
+        
+        // Oh wow I love to use types I've never seen from other libraries
+        // Lets use this new "evilInt" type in our MyClass instance
+        int evil = evilInt; // This will call the implicit operator we defined
+        Console.WriteLine($"Evil Int: {evil}");
+        Reflection.SetField(myClass, "_x", evilInt);
+        myClass.PrintX();
     }
 }

@@ -17,8 +17,9 @@ public static partial class Reflection
         var type = obj.GetType();
         var field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         if (field == null) return ReflectionResult.FieldNotFound;
-        
-        field.SetValue(obj, value);
+
+        try { field.SetValue(obj, value); }
+        catch (ArgumentException ex) { return ReflectionResult.IncorrectType;}
         return ReflectionResult.Success;
     }
     
@@ -90,21 +91,14 @@ public static partial class Reflection
         List<PropertyPackage> properties = new();
         List<MethodPackage> methods = new();
 
-        foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
-                                             BindingFlags.Static))
-        {
+        foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             fields.Add(new(field, obj));
-        }
         
-        foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
-                                                     BindingFlags.Static))
-        {
+        foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             properties.Add(new(property, obj));
-        }
 
         
-        foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
-                                BindingFlags.Static))
+        foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
         {
             methods.Add(new()
             {

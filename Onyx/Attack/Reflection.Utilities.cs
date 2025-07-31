@@ -12,7 +12,8 @@ public static partial class Reflection
         SetPropertyNotFound,
         Success,
         Irrelevant,
-        PropertyUnreadable
+        PropertyUnreadable,
+        IncorrectType
     } 
 
     public interface IVariablePackage
@@ -121,15 +122,15 @@ public static partial class Reflection
         public List<PropertyPackage> Properties { get; set; }
         public List<MethodPackage> Methods { get; set; }
     }
+}
 
-    public enum AccessModifier
-    {
-        Public,
-        Private,
-        Protected,
-        Internal,
-        ProtectedInternal,
-        PrivateProtected,
-        None, Irrelevant
-    }
+public enum AccessModifier
+{
+    Public,
+    Private,
+    Protected,
+    Internal,
+    ProtectedInternal,
+    PrivateProtected,
+    None, Irrelevant
 }
