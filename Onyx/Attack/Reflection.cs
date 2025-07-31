@@ -1,0 +1,167 @@
+﻿using System.Reflection;
+
+namespace Onyx.Attack;
+
+public static partial class Reflection
+{
+    #region Getters and Setters
+    public static VariablePackage GetField(object obj, string fieldName)
+    {
+        var type = obj.GetType();
+        var field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic);
+        if (field == null)
+        {
+            return new VariablePackage(fieldName, null, AccessModifier.None)
+            {
+                Type = typeof(object),
+                Result = ReflectionResult.FieldNotFound
+            };
+        }
+        
+        object? value = field.GetValue(obj);
+        AccessModifier access = GetAccessModifier(field);
+        return new VariablePackage(fieldName, value, access)
+        {
+            Type = field.FieldType,
+            Result = ReflectionResult.Success
+        };
+    }
+    
+    public static ReflectionResult SetField(object obj, string fieldName, object value)
+    {
+        var type = obj.GetType();
+        var field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic);
+        if (field == null) return ReflectionResult.FieldNotFound;
+        
+        field.SetValue(obj, value);
+        return ReflectionResult.Success;
+    }
+    
+    public static VariablePackage GetProperty(object obj, string propertyName)
+    {
+        var type = obj.GetType();
+        var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic);
+        if (property == null)
+        {
+            return new VariablePackage(propertyName, null, AccessModifier.None)
+            {
+                Type = typeof(object),
+                Result = ReflectionResult.PropertyNotFound
+            };
+        }
+
+        object? value;
+        try { value = property.GetValue(obj); }
+        catch (Exception)
+        {
+            return new VariablePackage(propertyName, ReflectionResult.PropertyUnreadable, AccessModifier.None)
+            {
+                Type = property.PropertyType,
+                Result = ReflectionResult.PropertyUnreadable
+            };
+        }
+        
+        AccessModifier access = GetAccessModifier(property);
+        return new VariablePackage(propertyName, value, access)
+        {
+            Type = property.PropertyType,
+            Result = ReflectionResult.Success
+        };
+    }
+    
+    public static ReflectionResult SetProperty(object obj, string propertyName, object value)
+    {
+        var type = obj.GetType();
+        var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic);
+        if (property == null) return ReflectionResult.PropertyNotFound;
+        var setter = property.GetSetMethod(true);
+        if (setter == null) return ReflectionResult.SetPropertyNotFound;
+        
+        setter.Invoke(obj, [value]);
+        return ReflectionResult.Success;
+    }
+    #endregion
+    #region Utility Methods (for inspection)
+
+    public static AccessModifier GetAccessModifier(FieldInfo? field)
+    {
+        if (field == null) return AccessModifier.None;
+        
+        if (field.IsPublic) return AccessModifier.Public;
+        if (field.IsPrivate) return AccessModifier.Private;
+        if (field.IsFamily) return AccessModifier.Protected;
+        if (field.IsAssembly) return AccessModifier.Internal;
+        if (field.IsFamilyOrAssembly) return AccessModifier.ProtectedInternal;
+        if (field.IsFamilyAndAssembly) return AccessModifier.PrivateProtected;
+        return AccessModifier.None;
+    }
+
+    public static AccessModifier GetAccessModifier(PropertyInfo? property)
+    {
+        if (property == null) return AccessModifier.None;
+        
+        if (property.GetMethod != null && property.GetMethod.IsPublic) return AccessModifier.Public;
+        if (property.GetMethod != null && property.GetMethod.IsPrivate) return AccessModifier.Private;
+        if (property.GetMethod != null && property.GetMethod.IsFamily) return AccessModifier.Protected;
+        if (property.GetMethod != null && property.GetMethod.IsAssembly) return AccessModifier.Internal;
+        if (property.GetMethod != null && property.GetMethod.IsFamilyOrAssembly) return AccessModifier.ProtectedInternal;
+        if (property.GetMethod != null && property.GetMethod.IsFamilyAndAssembly) return AccessModifier.PrivateProtected;
+        return AccessModifier.None;
+    }
+    
+    public static AccessModifier GetAccessModifier(MethodInfo? method)
+    {
+        if (method == null) return AccessModifier.None;
+        
+        if (method.IsPublic) return AccessModifier.Public;
+        if (method.IsPrivate) return AccessModifier.Private;
+        if (method.IsFamily) return AccessModifier.Protected;
+        if (method.IsAssembly) return AccessModifier.Internal;
+        if (method.IsFamilyOrAssembly) return AccessModifier.ProtectedInternal;
+        if (method.IsFamilyAndAssembly) return AccessModifier.PrivateProtected;
+        return AccessModifier.None;
+    }
+    #endregion
+
+    public static InspectionResult Inspect(object obj)
+    {
+        Type type = obj.GetType();
+        List<FieldPackage> fields = new();
+        List<PropertyPackage> properties = new();
+        List<MethodPackage> methods = new();
+
+        foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
+                                             BindingFlags.Static))
+        {
+            fields.Add(new(field, obj));
+        }
+        
+        foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
+                                                     BindingFlags.Static))
+        {
+            properties.Add(new(property, obj));
+        }
+
+        
+        foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
+                                BindingFlags.Static))
+        {
+            methods.Add(new()
+            {
+                Access = GetAccessModifier(method),
+                Name = method.Name,
+                Parameters = method.GetParameters().Select(x => new VariablePackage(x.Name ?? "unknown", null, AccessModifier.Irrelevant)).ToList(),
+                ReturnType = method.ReturnType,
+                Method = method
+            });
+        }
+
+        return new InspectionResult()
+        {
+            Fields = fields,
+            Properties = properties,
+            Type = type,
+            Methods = methods
+        };
+    } 
+}
