@@ -9,6 +9,6 @@ public readonly struct Contract<T> where T : Enum
 
 public readonly struct Event<T> where T : struct
 {
-    public required Contract<> Contract { get; init; }
+
     public required T Parameter { get; init; }
 }

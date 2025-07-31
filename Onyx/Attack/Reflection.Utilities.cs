@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Onyx.Attack;
 
@@ -101,6 +102,16 @@ public static partial class Reflection
         public Type ReturnType { get; init; }
         public List<VariablePackage> Parameters { get; init; }
         public MethodInfo? Method { get; init; }
+        public Delegate? CompiledDelegate { get; init; }
+        public Type? DelegateType => CompiledDelegate?.GetType();
+        
+        public static Type BuildDelegateType(MethodInfo method)
+        {
+            var parameterTypes = method.GetParameters().Select(p => p.ParameterType).ToList();
+            if (!method.IsStatic)
+                parameterTypes.Insert(0, method.DeclaringType!);
+            return Expression.GetDelegateType(parameterTypes.Concat([method.ReturnType]).ToArray());
+        }
     }
     
     public struct InspectionResult

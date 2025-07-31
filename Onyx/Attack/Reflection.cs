@@ -5,74 +5,34 @@ namespace Onyx.Attack;
 public static partial class Reflection
 {
     #region Getters and Setters
-    public static VariablePackage GetField(object obj, string fieldName)
+    public static FieldPackage GetField(object obj, string fieldName)
     {
         var type = obj.GetType();
-        var field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic);
-        if (field == null)
-        {
-            return new VariablePackage(fieldName, null, AccessModifier.None)
-            {
-                Type = typeof(object),
-                Result = ReflectionResult.FieldNotFound
-            };
-        }
-        
-        object? value = field.GetValue(obj);
-        AccessModifier access = GetAccessModifier(field);
-        return new VariablePackage(fieldName, value, access)
-        {
-            Type = field.FieldType,
-            Result = ReflectionResult.Success
-        };
+        var field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        return new(field, obj);
     }
     
     public static ReflectionResult SetField(object obj, string fieldName, object value)
     {
         var type = obj.GetType();
-        var field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic);
+        var field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         if (field == null) return ReflectionResult.FieldNotFound;
         
         field.SetValue(obj, value);
         return ReflectionResult.Success;
     }
     
-    public static VariablePackage GetProperty(object obj, string propertyName)
+    public static PropertyPackage GetProperty(object obj, string propertyName)
     {
         var type = obj.GetType();
-        var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic);
-        if (property == null)
-        {
-            return new VariablePackage(propertyName, null, AccessModifier.None)
-            {
-                Type = typeof(object),
-                Result = ReflectionResult.PropertyNotFound
-            };
-        }
-
-        object? value;
-        try { value = property.GetValue(obj); }
-        catch (Exception)
-        {
-            return new VariablePackage(propertyName, ReflectionResult.PropertyUnreadable, AccessModifier.None)
-            {
-                Type = property.PropertyType,
-                Result = ReflectionResult.PropertyUnreadable
-            };
-        }
-        
-        AccessModifier access = GetAccessModifier(property);
-        return new VariablePackage(propertyName, value, access)
-        {
-            Type = property.PropertyType,
-            Result = ReflectionResult.Success
-        };
+        var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        return new(property, obj);
     }
     
     public static ReflectionResult SetProperty(object obj, string propertyName, object value)
     {
         var type = obj.GetType();
-        var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic);
+        var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         if (property == null) return ReflectionResult.PropertyNotFound;
         var setter = property.GetSetMethod(true);
         if (setter == null) return ReflectionResult.SetPropertyNotFound;
@@ -152,7 +112,8 @@ public static partial class Reflection
                 Name = method.Name,
                 Parameters = method.GetParameters().Select(x => new VariablePackage(x.Name ?? "unknown", null, AccessModifier.Irrelevant)).ToList(),
                 ReturnType = method.ReturnType,
-                Method = method
+                Method = method,
+                CompiledDelegate = method.IsSpecialName ? null : method.CreateDelegate(MethodPackage.BuildDelegateType(method))
             });
         }
 
