@@ -27,6 +27,15 @@ public static partial class IL
         using System.Threading.Tasks;
         using System.Reflection;
         """;
+
+    public static IEnumerable<string> StandardImports =>
+    [
+        "System",
+        "System.Collections.Generic",
+        "System.Text",
+        "System.Threading.Tasks",
+        "System.Reflection"
+    ];
     
     public class UnableToCompileException : Exception
     {

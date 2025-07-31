@@ -8,9 +8,9 @@ namespace Testing;
 
 class Program
 {
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
-        object? result = IL.Run("1 + 1");
+        object? result = await IL.Run("1 + 1");
         Console.WriteLine(result);
         
         var (assembly, tempContext) = 
@@ -24,12 +24,8 @@ class Program
 
         int x = 1;
         int y = 2;
-        List<(string, object)> globals =
-        [
-            ("x", x),
-            ("y", y)
-        ];
-        object? result2 = IL.ICC("x + y", globals)();
-        Console.WriteLine(result2);
+        Console.WriteLine(Reflection.FromObject(() => x).Name);
+        object? result3 = IL.ICC("x + y", [() => x, () => y])();
+        Console.WriteLine(result3);
     }
 }

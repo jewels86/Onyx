@@ -90,16 +90,24 @@ public static partial class Reflection
     {
         try
         {
-            var memberExpression = (MemberExpression)objPointer.Body;
+            Expression body = objPointer.Body;
+
+            if (body is UnaryExpression unary && unary.NodeType == ExpressionType.Convert)
+            {
+                body = unary.Operand;
+            }
+
+            if (body is not MemberExpression memberExpression)
+                throw new ArgumentException("Expression does not point to a member.");
+
             string name = memberExpression.Member.Name;
-            object? obj = Expression.Lambda<Func<object>>(memberExpression).Compile().Invoke();
-            return new VariablePackage(name, obj, AccessModifier.Irrelevant);
+
+            var converted = Expression.Convert(memberExpression, typeof(object));
+            object? value = Expression.Lambda<Func<object>>(converted).Compile().Invoke();
+
+            return new VariablePackage(name, value, AccessModifier.Irrelevant);
         }
-        catch (InvalidCastException)
-        {
-            throw new ArgumentException("The provided expression does not point to a valid object.", nameof(objPointer));
-        }
-        catch
+        catch (Exception)
         {
             return new VariablePackage("unknown", null, AccessModifier.None, ReflectionResult.Failure);
         }
