@@ -42,5 +42,6 @@ public static partial class ClassBuilder
         typeBuilder.DefineMethodOverride(method, originalMethod);
     }
 
-    public static object? New(Type t) => Activator.CreateInstance(t);
+    public static object? New(Type t, object?[] args, BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) => 
+        Activator.CreateInstance(t, flags, null, args, null);
 }

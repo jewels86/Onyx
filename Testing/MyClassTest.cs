@@ -1,0 +1,61 @@
+﻿using System.Reflection;
+using System.Reflection.Emit;
+using Onyx.Defense;
+using Onyx.Attack;
+using Onyx.Shared;
+
+namespace Testing;
+
+public static class MyClassTest
+{
+    static void Run()
+    {
+        MyClass myClass = new MyClass(12);
+        myClass.PrintX();
+
+        var field = Reflection.GetField(myClass, "_x");
+        Console.WriteLine($"Name: {field.Name}, Type: {field.Type}, Value: {field.Value}, Access: {field.Access}, Result: {field.Result}");
+        Reflection.SetField(myClass, "_x", 123);
+        myClass.PrintX();
+        
+        Reflection.InspectionResult inspectionResult = Reflection.Inspect(myClass);
+        Console.WriteLine($"Fields: {inspectionResult.Fields.Count}, Properties: {inspectionResult.Properties.Count}");
+        foreach (var fieldPackage in inspectionResult.Fields)
+        {
+            Console.WriteLine($"Field: {fieldPackage.Name}, Value: {fieldPackage.Value}, Access: {fieldPackage.Access}");
+        }
+
+        var tb = ClassBuilder.CreateTypeBuilder("assembly0", "module0", "EvilInt");
+
+        var method = ClassBuilder.MethodBuilder(
+            tb, 
+            ClassBuilder.OperatorToString(OperatorType.Implicit), 
+            typeof(int), 
+            [tb], 
+            ClassBuilder.OperatorMethodAttributes());
+        var il = method.GetILGenerator();
+        il.EmitWriteLine("This is an evil implicit operator");
+        il.Emit(OpCodes.Ldc_I4, 42);
+        il.Emit(OpCodes.Ret);
+        
+        Type evilIntType = ClassBuilder.Finalize(tb);
+        dynamic evilInt = ClassBuilder.New(evilIntType, [])!;
+        
+        // Oh wow I love to use types I've never seen from other libraries
+        // Lets use this new "evilInt" type in our MyClass instance
+        int evil = evilInt; // This will call the implicit operator we defined
+        Console.WriteLine($"Evil Int: {evil}");
+        Reflection.SetField(myClass, "_x", evilInt);
+        myClass.PrintX();
+    }
+    
+    public class MyClass(int x)
+    {
+        private int _x = x;
+
+        public void PrintX()
+        {
+            Console.WriteLine(_x.ToString());
+        }
+    }
+}

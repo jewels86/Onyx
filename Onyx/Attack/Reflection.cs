@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Onyx.Attack;
 
@@ -19,7 +20,7 @@ public static partial class Reflection
         if (field == null) return ReflectionResult.FieldNotFound;
 
         try { field.SetValue(obj, value); }
-        catch (ArgumentException ex) { return ReflectionResult.IncorrectType;}
+        catch (ArgumentException) { return ReflectionResult.IncorrectType;}
         return ReflectionResult.Success;
     }
     
@@ -81,6 +82,28 @@ public static partial class Reflection
         if (method.IsFamilyOrAssembly) return AccessModifier.ProtectedInternal;
         if (method.IsFamilyAndAssembly) return AccessModifier.PrivateProtected;
         return AccessModifier.None;
+    }
+    #endregion
+    #region Utility Methods
+
+    public static VariablePackage FromObject(Expression<Func<object>> objPointer)
+    {
+        try
+        {
+            var memberExpression = (MemberExpression)objPointer.Body;
+            string name = memberExpression.Member.Name;
+            object? obj = Expression.Lambda<Func<object>>(memberExpression).Compile().Invoke();
+            return new VariablePackage(name, obj, AccessModifier.Irrelevant);
+        }
+        catch (InvalidCastException)
+        {
+            throw new ArgumentException("The provided expression does not point to a valid object.", nameof(objPointer));
+        }
+        catch
+        {
+            return new VariablePackage("unknown", null, AccessModifier.None, ReflectionResult.Failure);
+        }
+        
     }
     #endregion
 

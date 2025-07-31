@@ -13,7 +13,8 @@ public static partial class Reflection
         Success,
         Irrelevant,
         PropertyUnreadable,
-        IncorrectType
+        IncorrectType,
+        Failure
     } 
 
     public interface IVariablePackage
