@@ -30,7 +30,7 @@ public static partial class IL
         options ??= ScriptOptions.Default;
         options = options.AddImports(StandardImports)
             .AddReferences(typeof(object).Assembly)
-            .AddReferences(globals.GetType().Assembly);
+            .AddReferences(SafeReferenceFromAssembly(globals.GetType().Assembly));
         var result = CSharpScript.Create(code, options, globals.GetType()).CreateDelegate();
         return async () => await result.Invoke(globals);
     }
@@ -50,7 +50,7 @@ public static partial class IL
         options ??= ScriptOptions.Default;
         options = options.AddImports(StandardImports)
             .AddReferences(typeof(object).Assembly)
-            .AddReferences(globals.GetType().Assembly);
+            .AddReferences(SafeReferenceFromAssembly(globals.GetType().Assembly));
         var script = CSharpScript.Create(code, options, globals.GetType());
         var runner = script.CreateDelegate();
         return await runner.Invoke(globals);
@@ -75,16 +75,16 @@ public static partial class IL
         tctx = tctx ?? new TempContext();
         string path = Path.Combine(Path.GetTempPath(), $"globals-{assemblyName}.dll");
 
-        var stream = new FileStream(path, FileMode.Create, FileAccess.Write);
+        var stream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite);
         var result = compilation.Emit(stream);
         
         if (!result.Success) throw new UnableToCompileException("Couldn't compile the code: " + FromStrings(result.Diagnostics.Select(x => x.ToString()), "\n"));
 
         stream.Flush();
-        stream.Seek(0, SeekOrigin.Begin);
-        
-        var assembly = tctx.FromStream(stream);
         stream.Dispose();
+        
+        var assembly = tctx.FromPath(path);
+        tctx.AddedAssemblies.Add(path);
         
         return (assembly, tctx);
     }
@@ -96,7 +96,6 @@ public static partial class IL
     }
     #endregion
     #region In Context Compilation (ICC)
-
     public static (Type, TempContext) ICCGlobalsType(List<Expression<Func<object>>> context, TempContext? tctx = null, string? before = null, string? typeName = null)
     {
         List<VariablePackage> variables = context.Select(o => FromObject(o)).ToList();
@@ -137,22 +136,19 @@ public static partial class IL
         if (assembly == null)
             throw new UnableToCompileException("Failed to compile globals type.");
         
-        
         return (FromAssembly(assembly, typeName), newTempContext);
     }
 
-    public static Func<Task<object?>> ICC(string code, List<Expression<Func<object>>> context, TempContext? tctx = null, ScriptOptions? options = null)
+    public static (Func<Task<object?>>, TempContext) ICC(string code, List<Expression<Func<object>>> context, TempContext? tctx = null, ScriptOptions? options = null)
     {
         bool usedTempContext = tctx != null;
         var (globalsType, ntctx) = ICCGlobalsType(context, tctx);
         var globals = New(globalsType, context.Select(x => x.Compile()()).ToArray());
         if (globals == null) throw new UnableToCompileException("Failed to create globals instance.");
-        if (!usedTempContext) ntctx.Unload();
-        return ICC(code, globals, options);
+        return (ICC(code, globals, options), ntctx);
     }
 
     public static Func<Task<object?>> ICC(string code, object globals, ScriptOptions? options = null)
-
     {
         return Create(code, globals, options);
     }
