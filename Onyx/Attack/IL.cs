@@ -28,12 +28,13 @@ public static partial class IL
     public static Func<Task<object?>> Create(string code, object globals, ScriptOptions? options = null)
     {
         options ??= ScriptOptions.Default;
-        options = options.AddImports(StandardImports)
-            .AddReferences(typeof(object).Assembly)
-            .AddReferences(SafeReferenceFromAssembly(globals.GetType().Assembly));
+        options = options.AddReferences(typeof(object).Assembly)
+            .AddReferences(SafeReferenceFromAssembly(globals.GetType().Assembly))
+            .AddImports(StandardImports);
+        
         var result = CSharpScript.Create(code, options, globals.GetType()).CreateDelegate();
         return async () => await result.Invoke(globals);
-    }
+    } // roslyn is loading the assembly from the reference but using a different context, so casting errors come up
     
     public static async Task<object?> Run(string code, ScriptOptions? options = null)
     {
