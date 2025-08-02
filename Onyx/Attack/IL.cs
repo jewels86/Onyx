@@ -26,7 +26,7 @@ public static partial class IL
     } // you can remove the memory references so we can do disk based
     
     public static Func<Task<object?>> Create(string code, object globals, ScriptOptions? options = null)
-    {
+    { // Refactor this whole this to use a dictionary 
         options ??= ScriptOptions.Default;
         options = options.AddReferences(typeof(object).Assembly)
             .AddReferences(SafeReferenceFromAssembly(globals.GetType().Assembly))

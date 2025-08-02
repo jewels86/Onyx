@@ -42,6 +42,24 @@ public static partial class Reflection
         setter.Invoke(obj, [value]);
         return ReflectionResult.Success;
     }
+
+    public static MethodPackage GetMethod(object obj, string methodName)
+    {
+        var type = obj.GetType();
+        var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        if (method == null)
+            return new MethodPackage()
+            {
+                Access = AccessModifier.None,
+                CompiledDelegate = null,
+                Method = null,
+                Name = methodName,
+                Parameters = [],
+                ReturnType = typeof(object),
+                Result = ReflectionResult.MethodNotFound
+            };
+        return new MethodPackage(method);
+    }
     #endregion
     #region Utility Methods (for inspection)
 

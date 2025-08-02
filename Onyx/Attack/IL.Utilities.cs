@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -10,6 +11,7 @@ public static partial class IL
     public class TempContext : AssemblyLoadContext
     {
         public WeakReference<TempContext> WeakRef { get; set; }
+        public List<WeakReference<Assembly>> Tracked { get; } = [];
         public List<string> AddedAssemblies { get; } = [];
 
         public TempContext() : base(isCollectible: true)
@@ -20,16 +22,24 @@ public static partial class IL
         public Assembly FromPath(string path) => LoadFromAssemblyPath(path);
         public bool IsAlive => WeakRef.TryGetTarget(out _);
 
+        public void Track(Assembly asm)
+        {
+            Tracked.Add(new WeakReference<Assembly>(asm));
+        }
+
         public void FullUnload()
         {
             GC.Collect();
             GC.WaitForPendingFinalizers();
-            Unload();
+            
             foreach (var assembly in AddedAssemblies)
             {
                 try { File.Delete(assembly); }
                 catch (IOException) { }
             }
+            
+            Tracked.Clear();
+            Unload();
         }
     }
     

@@ -2,10 +2,12 @@
 
 public static class GeneralUtilities
 {
-    public static string NewGUID(int length)
+    public static string NewGUID(int length, bool sanitize = false)
     {
         length = Math.Max(length, 16);
-        return Guid.NewGuid().ToString().Substring(0, length);
+        string result = Guid.NewGuid().ToString().Substring(0, length);
+        if (sanitize) result = result.Replace("-", "");
+        return result;
     }
     
     public static string FromStrings(IEnumerable<string> strings, string separator = "")

@@ -13,6 +13,7 @@ public static partial class Reflection
         Success,
         Irrelevant,
         PropertyUnreadable,
+        MethodNotFound,
         IncorrectType,
         Failure
     } 
@@ -99,13 +100,25 @@ public static partial class Reflection
 
     public struct MethodPackage
     {
-        public string Name { get; init; }
-        public AccessModifier Access { get; init; }
-        public Type ReturnType { get; init; }
-        public List<VariablePackage> Parameters { get; init; }
-        public MethodInfo? Method { get; init; }
-        public Delegate? CompiledDelegate { get; init; }
+        public string Name { get; set; }
+        public AccessModifier Access { get; set; }
+        public Type ReturnType { get; set; }
+        public List<VariablePackage> Parameters { get; set; }
+        public MethodInfo? Method { get; set; }
+        public Delegate? CompiledDelegate { get; set; }
         public Type? DelegateType => CompiledDelegate?.GetType();
+        public ReflectionResult Result { get; set; } = ReflectionResult.Success;
+
+        public MethodPackage(MethodInfo info)
+        {
+            Access = GetAccessModifier(info);
+            CompiledDelegate = info.CreateDelegate(BuildDelegateType(info));
+            Method = info;
+            Name = info.Name;
+            ReturnType = info.ReturnType;
+            Parameters = info.GetParameters()
+                .Select(x => new VariablePackage(x.Name ?? "unknown", null, AccessModifier.Irrelevant)).ToList();
+        }
         
         public static Type BuildDelegateType(MethodInfo method)
         {

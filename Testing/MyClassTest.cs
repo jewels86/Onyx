@@ -8,7 +8,7 @@ namespace Testing;
 
 public static class MyClassTest
 {
-    static void Run()
+    public static void Run()
     {
         MyClass myClass = new MyClass(12);
         myClass.PrintX();
@@ -25,7 +25,7 @@ public static class MyClassTest
             Console.WriteLine($"Field: {fieldPackage.Name}, Value: {fieldPackage.Value}, Access: {fieldPackage.Access}");
         }
 
-        var tb = ClassBuilder.CreateTypeBuilder("assembly0", "module0", "EvilInt");
+        var tb = ClassBuilder.CreateTypeBuilder("EvilInt");
 
         var method = ClassBuilder.MethodBuilder(
             tb, 
@@ -38,15 +38,18 @@ public static class MyClassTest
         il.Emit(OpCodes.Ldc_I4, 42);
         il.Emit(OpCodes.Ret);
         
-        Type evilIntType = ClassBuilder.Finalize(tb);
-        dynamic evilInt = ClassBuilder.New(evilIntType, [])!;
+        var (evilIntType, tctx) = ClassBuilder.Finalize(tb);
+        {
+            dynamic evilInt = ClassBuilder.New(evilIntType, [])!;
         
-        // Oh wow I love to use types I've never seen from other libraries
-        // Lets use this new "evilInt" type in our MyClass instance
-        int evil = evilInt; // This will call the implicit operator we defined
-        Console.WriteLine($"Evil Int: {evil}");
-        Reflection.SetField(myClass, "_x", evilInt);
-        myClass.PrintX();
+            // Oh wow I love to use types I've never seen from other libraries
+            // Lets use this new "evilInt" type in our MyClass instance
+            int evil = evilInt; // This will call the implicit operator we defined
+            Console.WriteLine($"Evil Int: {evil}");
+            Reflection.SetField(myClass, "_x", evilInt);
+            myClass.PrintX();
+        }
+        tctx.FullUnload();
     }
     
     public class MyClass(int x)
