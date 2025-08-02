@@ -25,11 +25,14 @@ public static partial class IL
         return async () => await result.Invoke();
     } // you can remove the memory references so we can do disk based
     
-    public static Func<Task<object?>> Create(string code, object globals, ScriptOptions? options = null)
+    public static Func<Task<object?>> Create(string code, object globals, IEnumerable<MetadataReference>? extraReferences = null, 
+        IEnumerable<string>? extraImports = null, ScriptOptions? options = null)
     { // Refactor this whole this to use a dictionary 
         options ??= ScriptOptions.Default;
         options = options.AddReferences(typeof(object).Assembly)
             .AddReferences(SafeReferenceFromAssembly(globals.GetType().Assembly))
+            .AddReferences(extraReferences ?? [])
+            .AddImports(extraImports ?? [])
             .AddImports(StandardImports);
         
         var result = CSharpScript.Create(code, options, globals.GetType()).CreateDelegate();
@@ -97,61 +100,35 @@ public static partial class IL
     }
     #endregion
     #region In Context Compilation (ICC)
-    public static (Type, TempContext) ICCGlobalsType(List<Expression<Func<object>>> context, TempContext? tctx = null, string? before = null, string? typeName = null)
+    public static Dictionary<string, object?> ICCGlobals(List<Expression<Func<object>>> context)
     {
         List<VariablePackage> variables = context.Select(o => FromObject(o)).ToList();
-        if (typeName == null) 
-            typeName = $"Globals_{RemoveIllegalCharacters(NewGUID(8))}";
+        var globals = variables.Select(x => (x.Name, x.Value)).ToDictionary();
+        return globals;
+    }
+
+    public static Func<Task<object?>> ICC(string code, List<Expression<Func<object>>> context, ScriptOptions? options = null)
+    {
+        var globals = ICCGlobals(context);
+        return ICC(code, globals, options);
+    }
+
+    public static Func<Task<object?>> ICC(string code, Dictionary<string, object?> globals, ScriptOptions? options = null)
+    {
         StringBuilder sb = new();
-        sb.AppendLine(StandardUsings);
-        sb.AppendLine(before ?? "");
-
-        sb.AppendLine("public class " + typeName);
-        sb.AppendLine("{");
-
-        foreach (var variable in variables)
+        List<MetadataReference> extraReferences = [];
+        foreach (var (name, value) in globals)
         {
-            sb.AppendLine($"    public {GetCSharpTypeName(variable.Type)} {variable.Name} {{ get; set; }} = default!;");
+            Type type = value?.GetType() ?? typeof(object);
+            string typeName = GetCSharpTypeName(type);
+            sb.AppendLine($"{typeName} {name} = ({typeName})Globals[\"{name}\"];");
+            extraReferences.Add(SafeReferenceFromAssembly(type.Assembly));
         }
-        
+
         sb.AppendLine();
-        sb.Append($"    public {typeName}(");
-        foreach (var variable in variables)
-        {
-            sb.Append($"{GetCSharpTypeName(variable.Type)} {variable.Name}2");
-            if (variable != variables.Last())
-                sb.Append(",");
-        }
-        sb.AppendLine(")");
-        sb.AppendLine("    {");
-        foreach (var variable in variables)
-        {
-            sb.AppendLine($"        {variable.Name} = {variable.Name.ToLower()}2;");
-        }
-        sb.AppendLine("    }");
-
-        sb.AppendLine("}");
-        
-        Console.WriteLine(sb.ToString());
-        var (assembly, newTempContext) = Compile(sb.ToString(), $"globals_{NewGUID(8)}", tctx);
-        if (assembly == null)
-            throw new UnableToCompileException("Failed to compile globals type.");
-        
-        return (FromAssembly(assembly, typeName), newTempContext);
-    }
-
-    public static (Func<Task<object?>>, TempContext) ICC(string code, List<Expression<Func<object>>> context, TempContext? tctx = null, ScriptOptions? options = null)
-    {
-        bool usedTempContext = tctx != null;
-        var (globalsType, ntctx) = ICCGlobalsType(context, tctx);
-        var globals = New(globalsType, context.Select(x => x.Compile()()).ToArray());
-        if (globals == null) throw new UnableToCompileException("Failed to create globals instance.");
-        return (ICC(code, globals, options), ntctx);
-    }
-
-    public static Func<Task<object?>> ICC(string code, object globals, ScriptOptions? options = null)
-    {
-        return Create(code, globals, options);
+        sb.Append(code);
+        code = sb.ToString();
+        return Create(code, new GlobalsType(globals), extraReferences, options: options);
     }
 
     #endregion

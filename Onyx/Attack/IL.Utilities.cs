@@ -75,4 +75,8 @@ public static partial class IL
         return MetadataReference.CreateFromFile(assembly.Location);
     }
 
+    public class GlobalsType(Dictionary<string, object?> globals)
+    {
+        public Dictionary<string, object?> Globals { get; set; } = globals;
+    }
 }
