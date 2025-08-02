@@ -46,6 +46,16 @@ public static partial class Reflection
             Field = field;
             Result = field == null ? ReflectionResult.FieldNotFound : ReflectionResult.Success;
         }
+
+        public FieldPackage(FieldInfo? field)
+        {
+            Name = field?.Name ?? "unknown";
+            Type = field?.FieldType ?? typeof(object);
+            Value = ReflectionResult.Irrelevant;
+            Access = GetAccessModifier(field);
+            Field = field;
+            Result = field == null ? ReflectionResult.FieldNotFound : ReflectionResult.Success;
+        }
     }
     
     public class PropertyPackage : IVariablePackage
@@ -77,6 +87,16 @@ public static partial class Reflection
             Property = property;
             Result = property == null ? ReflectionResult.PropertyNotFound : 
                 readable ? ReflectionResult.Success : ReflectionResult.PropertyUnreadable;
+        }
+        
+        public PropertyPackage(PropertyInfo? property)
+        {
+            Name = property?.Name ?? "unknown";
+            Type = property?.PropertyType ?? typeof(object);
+            Value = ReflectionResult.Irrelevant;
+            Access = GetAccessModifier(property);
+            Property = property;
+            Result = property == null ? ReflectionResult.PropertyNotFound : ReflectionResult.Success;
         }
     }
     

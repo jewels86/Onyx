@@ -61,8 +61,9 @@ public static partial class IL
     }
     #endregion
     #region Compliation
-    public static (Assembly, TempContext) Compile(string code, string assemblyName, TempContext? tctx = null)
+    public static (Assembly, TempContext) Compile(string code, string? assemblyName = null, TempContext? tctx = null)
     {
+        if (assemblyName == null) assemblyName = NewGUID(8, true);
         var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
         if (tpa is null) throw new Exception("Could not get trusted platform assemblies");
 
@@ -91,6 +92,19 @@ public static partial class IL
         tctx.AddedAssemblies.Add(path);
         
         return (assembly, tctx);
+    }
+
+    public static object? CompileAndUse(string code, Func<Assembly, object?> use)
+    {
+        var (asm, tctx) = Compile(code);
+        var result = use(asm);
+        tctx.FullUnload();
+        return result;
+    }
+
+    public static T CompileAndUseTyped<T>(string code, Func<Assembly, object> use)
+    {
+        return (T)CompileAndUse(code, use)!;
     }
     
     public static Type FromAssembly(Assembly assembly, string typeName)

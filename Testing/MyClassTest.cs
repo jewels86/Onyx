@@ -50,6 +50,14 @@ public static class MyClassTest
             myClass.PrintX();
         }
         tctx.FullUnload();
+        Console.WriteLine(tctx.IsAlive);
+
+        var mytb = ClassBuilder.CreateTypeBuilder("MyClass");
+        var fb = ClassBuilder.FieldBuilder(mytb, "maybeSecure", typeof(string));
+        ClassBuilder.FinalizeAndUse(mytb, t =>
+        {
+            
+        });
     }
     
     public class MyClass(int x)

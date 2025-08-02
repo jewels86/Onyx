@@ -26,11 +26,30 @@ public static partial class ClassBuilder
         return (type, tctx);
     }
 
-    public static void FinalizeAndUse(TypeBuilder typeBuilder, Action<Type> action)
+    public static object? FinalizeAndUse(TypeBuilder typeBuilder, Func<Type, object?> use)
     {
         var (type, tctx) = Finalize(typeBuilder);
-        action(type);
+        var result = use(type);
         tctx.FullUnload();
+        return result;
+    }
+
+    public static T FinalizeAndUseTyped<T>(TypeBuilder typeBuilder, Func<Type, object?> use)
+    {
+        return (T)FinalizeAndUse(typeBuilder, use)!;
+    }
+
+    public static async Task<object?> FinalizeAndUseAsync(TypeBuilder typeBuilder, Func<Type, Task<object?>> use)
+    {
+        var (type, tctx) = Finalize(typeBuilder);
+        var result = await use(type);
+        tctx.FullUnload();
+        return result;
+    }
+
+    public static async Task<T> FinalizeAndUseTypedAsync<T>(TypeBuilder typeBuilder, Func<Type, Task<object?>> use)
+    {
+        return (T)(await FinalizeAndUseAsync(typeBuilder, use))!;
     }
     
     public static MethodBuilder MethodBuilder(TypeBuilder typeBuilder, string methodName, Type returnType,
@@ -54,6 +73,13 @@ public static partial class ClassBuilder
     public static void DefineOverrideMethod(TypeBuilder typeBuilder, MethodInfo method, MethodInfo originalMethod)
     {
         typeBuilder.DefineMethodOverride(method, originalMethod);
+    }
+
+    public static void CreateLazyConstructor(TypeBuilder typeBuilder)
+    {
+        var mb = typeBuilder.DefineConstructor(
+            MethodAttributes.Public, CallingConventions.Standard, 
+            GetLazyConstructorSettables(typeBuilder))
     }
 
     public static object? New(Type t, object?[] args, BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) => 

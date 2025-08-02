@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Reflection.Emit;
 
 namespace Onyx.Attack;
 
@@ -37,5 +38,13 @@ public static partial class ClassBuilder
     public static MethodAttributes OperatorMethodAttributes()
     {
         return MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
+    }
+
+    public static List<Reflection.IVariablePackage> GetLazyConstructorSettables(TypeBuilder tb)
+    {
+        List<Reflection.IVariablePackage> result = [];
+        result.AddRange(tb.DeclaredFields.Select(x => new Reflection.FieldPackage(x)));
+        result.AddRange(tb.DeclaredProperties.Select(x => new Reflection.PropertyPackage(x)));
+        return result;
     }
 }
