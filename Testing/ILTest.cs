@@ -6,12 +6,12 @@ public class ILTest
 {
     public static async Task Run()
     {
-        object? result = await IL.Run("1 + 1");
+        object? result = await Compilation.Run("1 + 1");
         Console.WriteLine(result);
 
         int x = 1;
         int y = 2;
         Console.WriteLine(Reflection.FromObject(() => x).Name);
-        Console.WriteLine(await IL.ICC("return x + y;", [() => x, () => y])());
+        Console.WriteLine(await Compilation.ICC("return x + y;", [() => x, () => y])());
     }
 }

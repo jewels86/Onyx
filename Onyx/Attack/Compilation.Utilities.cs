@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Onyx.Attack;
 
-public static partial class IL
+public static partial class Compilation
 {
     public class TempContext : AssemblyLoadContext
     {

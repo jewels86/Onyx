@@ -13,7 +13,7 @@ using static Onyx.Attack.ClassBuilder;
 
 namespace Onyx.Attack;
 
-public static partial class IL
+public static partial class Compilation
 {
     #region Quick Evaluation
     public static Func<Task<object?>> Create(string code, ScriptOptions? options = null)

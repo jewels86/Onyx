@@ -18,9 +18,9 @@ public static partial class ClassBuilder
         return typeBuilder;
     }
 
-    public static (Type, IL.TempContext) Finalize(TypeBuilder typeBuilder)
+    public static (Type, Compilation.TempContext) Finalize(TypeBuilder typeBuilder)
     {
-        var tctx = new IL.TempContext();
+        var tctx = new Compilation.TempContext();
         var type = typeBuilder.CreateType();
         tctx.Track(type.Assembly);
         return (type, tctx);
