@@ -78,8 +78,9 @@ public static partial class ClassBuilder
     public static void CreateLazyConstructor(TypeBuilder typeBuilder)
     {
         var mb = typeBuilder.DefineConstructor(
-            MethodAttributes.Public, CallingConventions.Standard, 
-            GetLazyConstructorSettables(typeBuilder))
+            MethodAttributes.Public, CallingConventions.Standard,
+            GetLazyConstructorSettables(typeBuilder).Select(x => x.Type).ToArray());
+        // unfinished
     }
 
     public static object? New(Type t, object?[] args, BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) => 

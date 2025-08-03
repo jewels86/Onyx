@@ -54,9 +54,12 @@ public static class MyClassTest
 
         var mytb = ClassBuilder.CreateTypeBuilder("MyClass");
         var fb = ClassBuilder.FieldBuilder(mytb, "maybeSecure", typeof(string));
+        fb.SetConstant("hello");
         ClassBuilder.FinalizeAndUse(mytb, t =>
         {
-            
+            dynamic x = ClassBuilder.New(mytb, [])!;
+            Console.WriteLine(Reflection.GetField(x, "maybeSecure"));
+            return null;
         });
     }
     
