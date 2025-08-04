@@ -10,6 +10,7 @@ using Onyx.Shared;
 using static Onyx.Attack.Reflection;
 using static Onyx.Shared.GeneralUtilities;
 using static Onyx.Attack.ClassBuilder;
+using Mono.Cecil;
 
 namespace Onyx.Attack;
 
@@ -61,14 +62,21 @@ public static partial class Compilation
     }
     #endregion
     #region Compliation
-    public static (Assembly, TempContext) Compile(string code, string? assemblyName = null, TempContext? tctx = null)
+    public static void Compile(string code, Assembly? targetAssembly = null)
     {
-        if (assemblyName == null) assemblyName = NewGUID(8, true);
+        var assemblyName = NewGUID(8, true);
         var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
         if (tpa is null) throw new Exception("Could not get trusted platform assemblies");
+        if (targetAssembly == null) targetAssembly = Assembly.GetExecutingAssembly();
+        var targetAssemblyDefinition = PostCompilation.GetDefinitionFrom(targetAssembly);
+        if (targetAssemblyDefinition == null) 
+            throw new UnableToCompileException("Target assembly definition could not be retrieved.");
 
         var references = tpa.Split(Path.PathSeparator)
             .Select(path => MetadataReference.CreateFromFile(path))
+            .Concat(PostCompilation.ExtractReferences(Assembly.GetExecutingAssembly()))
+            .Concat(PostCompilation.ExtractReferences(targetAssembly))
+            .Distinct()
             .ToList();
 
         var tree = CSharpSyntaxTree.ParseText(code);
@@ -77,34 +85,19 @@ public static partial class Compilation
             .AddSyntaxTrees(tree)
             .AddReferences(references);
 
-        tctx = tctx ?? new TempContext();
-        string path = Path.Combine(Path.GetTempPath(), $"globals-{assemblyName}.dll");
-
-        var stream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite);
-        var result = compilation.Emit(stream);
+        using var peStream = new MemoryStream();
+        var result = compilation.Emit(peStream);
+        if (!result.Success)
+        {
+            var errors = result.Diagnostics
+                .Where(d => d.Severity == DiagnosticSeverity.Error)
+                .Select(d => d.GetMessage())
+                .ToList();
+            throw new UnableToCompileException($"Compilation failed: {string.Join(", ", errors)}");
+        }
         
-        if (!result.Success) throw new UnableToCompileException("Couldn't compile the code: " + FromStrings(result.Diagnostics.Select(x => x.ToString()), "\n"));
-
-        stream.Flush();
-        stream.Dispose();
-        
-        var assembly = tctx.FromPath(path);
-        tctx.AddedAssemblies.Add(path);
-        
-        return (assembly, tctx);
-    }
-
-    public static object? CompileAndUse(string code, Func<Assembly, object?> use)
-    {
-        var (asm, tctx) = Compile(code);
-        var result = use(asm);
-        tctx.FullUnload();
-        return result;
-    }
-
-    public static T CompileAndUseTyped<T>(string code, Func<Assembly, object> use)
-    {
-        return (T)CompileAndUse(code, use)!;
+        peStream.Seek(0, SeekOrigin.Begin);
+        PostCompilation.Inject(targetAssemblyDefinition, peStream);
     }
     
     public static Type FromAssembly(Assembly assembly, string typeName)
