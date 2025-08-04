@@ -1,6 +1,8 @@
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Mono.Cecil;
+using HarmonyLib;
+using Onyx.Shared;
 
 namespace Onyx.Attack;
 
@@ -55,7 +57,7 @@ public static class PostCompilation
         return newType;
     }
     
-    public static void Inject(AssemblyDefinition target, MemoryStream compiled)
+    public static void AsmInject(AssemblyDefinition target, MemoryStream compiled)
     {
         var source = AssemblyDefinition.ReadAssembly(compiled, new ReaderParameters { ReadSymbols = false});
         foreach (var module in source.Modules)
@@ -66,6 +68,12 @@ public static class PostCompilation
                 target.MainModule.Types.Add(importedType);
             }
         }
+    }
+
+    public static void MethodInject(MethodInfo target, MethodInfo? prefix = null, MethodInfo? postfix = null, Harmony? harmony = null)
+    {
+        harmony ??= new Harmony($"onyx-attack-{GeneralUtilities.NewGUID(8, true)}");
+        harmony.Patch(target, prefix: new HarmonyMethod(prefix), postfix: new HarmonyMethod(postfix));
     }
 
     public static string? ResolveAssemblyPath(AssemblyNameReference reference)
@@ -127,7 +135,7 @@ public static class PostCompilation
 
     public static AssemblyDefinition? GetDefinitionFrom(Assembly asm)
     {
-        if (!asm.IsDynamic || string.IsNullOrEmpty(asm.Location)) return null;
+        if (asm.IsDynamic || string.IsNullOrEmpty(asm.Location)) return null;
         
         return AssemblyDefinition.ReadAssembly(asm.Location);
     }

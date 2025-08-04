@@ -56,6 +56,16 @@ public static partial class Reflection
             Field = field;
             Result = field == null ? ReflectionResult.FieldNotFound : ReflectionResult.Success;
         }
+        
+        public FieldPackage(string name, Type type, object? value, AccessModifier access, ReflectionResult result = ReflectionResult.Success)
+        {
+            Name = name;
+            Type = type;
+            Value = value;
+            Access = access;
+            Result = result;
+            Field = null;
+        }
     }
     
     public class PropertyPackage : IVariablePackage
@@ -97,6 +107,16 @@ public static partial class Reflection
             Access = GetAccessModifier(property);
             Property = property;
             Result = property == null ? ReflectionResult.PropertyNotFound : ReflectionResult.Success;
+        }
+        
+        public PropertyPackage(string name, Type type, object? value, AccessModifier access, ReflectionResult result = ReflectionResult.Success)
+        {
+            Name = name;
+            Type = type;
+            Value = value;
+            Access = access;
+            Result = result;
+            Property = null;
         }
     }
     
@@ -140,6 +160,17 @@ public static partial class Reflection
                 .Select(x => new VariablePackage(x.Name ?? "unknown", null, AccessModifier.Irrelevant)).ToList();
         }
         
+        public MethodPackage(string name, AccessModifier access, Type returnType, List<VariablePackage> parameters, MethodInfo? method = null)
+        {
+            Name = name;
+            Access = access;
+            ReturnType = returnType;
+            Parameters = parameters;
+            Method = method;
+            CompiledDelegate = method?.CreateDelegate(BuildDelegateType(method));
+            Result = method == null ? ReflectionResult.MethodNotFound : ReflectionResult.Success;
+        }
+        
         public static Type BuildDelegateType(MethodInfo method)
         {
             var parameterTypes = method.GetParameters().Select(p => p.ParameterType).ToList();
@@ -156,15 +187,35 @@ public static partial class Reflection
         public List<PropertyPackage> Properties { get; set; }
         public List<MethodPackage> Methods { get; set; }
     }
+    
+    public static MethodAttributes AccessModifierToMethodAttributes(this AccessModifier access)
+    {
+        MethodAttributes attributes = MethodAttributes.PrivateScope;
+        if (access.HasFlag(AccessModifier.Public)) attributes |= MethodAttributes.Public;
+        if (access.HasFlag(AccessModifier.Private)) attributes |= MethodAttributes.Private;
+        if (access.HasFlag(AccessModifier.Protected)) attributes |= MethodAttributes.Family;
+        if (access.HasFlag(AccessModifier.Internal)) attributes |= MethodAttributes.Assembly;
+        if (access.HasFlag(AccessModifier.ProtectedInternal)) attributes |= MethodAttributes.FamORAssem;
+        if (access.HasFlag(AccessModifier.PrivateProtected)) attributes |= MethodAttributes.FamANDAssem;
+        if (access.HasFlag(AccessModifier.Static)) attributes |= MethodAttributes.Static;
+        if (access.HasFlag(AccessModifier.Abstract)) attributes |= MethodAttributes.Abstract;
+        if (access.HasFlag(AccessModifier.Virtual)) attributes |= MethodAttributes.Virtual;
+        if (access.HasFlag(AccessModifier.Override)) attributes |= MethodAttributes.NewSlot | MethodAttributes.Virtual;
+        if (access.HasFlag(AccessModifier.Sealed)) attributes |= MethodAttributes.Final;
+
+        return attributes;
+    }
 }
 
+[Flags]
 public enum AccessModifier
 {
-    Public,
-    Private,
-    Protected,
-    Internal,
-    ProtectedInternal,
-    PrivateProtected,
-    None, Irrelevant
+    Public = 2,
+    Private = 4,
+    Protected = 8,
+    Internal = 16,
+    ProtectedInternal = 32,
+    PrivateProtected = 64,
+    None = 128, Irrelevant = 256,
+    Static = 512, Abstract = 1024, Virtual = 2048, Override = 4096, Sealed = 8192
 }

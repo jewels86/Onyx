@@ -2,7 +2,7 @@ using Onyx.Attack;
 
 namespace Testing;
 
-public class ILTest
+public class CompilationTest
 {
     public static async Task Run()
     {

@@ -1,8 +1,4 @@
-﻿using System.Reflection;
-using System.Reflection.Emit;
-using Onyx.Defense;
 using Onyx.Attack;
-using Onyx.Shared;
 
 namespace Testing;
 
@@ -10,66 +6,51 @@ public static class MyClassTest
 {
     public static void Run()
     {
-        MyClass myClass = new MyClass(12);
-        myClass.PrintX();
-
-        var field = Reflection.GetField(myClass, "_x");
-        Console.WriteLine($"Name: {field.Name}, Type: {field.Type}, Value: {field.Value}, Access: {field.Access}, Result: {field.Result}");
-        Reflection.SetField(myClass, "_x", 123);
-        myClass.PrintX();
-        
-        Reflection.InspectionResult inspectionResult = Reflection.Inspect(myClass);
-        Console.WriteLine($"Fields: {inspectionResult.Fields.Count}, Properties: {inspectionResult.Properties.Count}");
-        foreach (var fieldPackage in inspectionResult.Fields)
         {
-            Console.WriteLine($"Field: {fieldPackage.Name}, Value: {fieldPackage.Value}, Access: {fieldPackage.Access}");
+            MyClass myClass = new MyClass(12);
+            myClass.PrintX();
+                    
+            // Huh, I got this object that's being passed around; I wonder if I can exploit it
+            var ins = Reflection.Inspect(myClass);
+            var privateFields = ins.Fields.Where(x => x.Access.HasFlag(AccessModifier.Private));
+            foreach (var field in privateFields)
+            { 
+                Console.WriteLine($"Name: {field.Name}, Type: {field.Type}, Value: {field.Value}, Access: {field.Access}"); // Lets mess it up
+                Reflection.SetField(myClass, field.Name, null!);
+            }
+                    
+            // Now lets try to use MyClass
+            myClass.PrintX();
+            // _x is now 0 because we set it to null, which is not a valid int
         }
-
-        var tb = ClassBuilder.CreateTypeBuilder("EvilInt");
-
-        var method = ClassBuilder.MethodBuilder(
-            tb, 
-            ClassBuilder.OperatorToString(OperatorType.Implicit), 
-            typeof(int), 
-            [tb], 
-            ClassBuilder.OperatorMethodAttributes());
-        var il = method.GetILGenerator();
-        il.EmitWriteLine("This is an evil implicit operator");
-        il.Emit(OpCodes.Ldc_I4, 42);
-        il.Emit(OpCodes.Ret);
-        
-        var (evilIntType, tctx) = ClassBuilder.Finalize(tb);
         {
-            dynamic evilInt = ClassBuilder.New(evilIntType, [])!;
-        
+            // Lets trick our user into using a fake constant in their MyClass instance
+            // We can do this by creating a new type with an implict int operator
+            var dtb = new DynamicTypeBuilder("EvilInt");
+            dtb.AddMethod(() =>
+            {
+                Console.WriteLine("Evil int is very evil");
+                return 42;
+            }, "implicit operator int", AccessModifier.Public | AccessModifier.Static);
+            Type evilIntType = dtb.Build();
+            
+            dynamic evilInt = Activator.CreateInstance(evilIntType)!;
+            
             // Oh wow I love to use types I've never seen from other libraries
             // Lets use this new "evilInt" type in our MyClass instance
-            int evil = evilInt; // This will call the implicit operator we defined
-            Console.WriteLine($"Evil Int: {evil}");
-            Reflection.SetField(myClass, "_x", evilInt);
+            MyClass myClass = new MyClass(evilInt);
             myClass.PrintX();
+            
         }
-        tctx.FullUnload();
-        Console.WriteLine(tctx.IsAlive);
-
-        var mytb = ClassBuilder.CreateTypeBuilder("MyClass");
-        var fb = ClassBuilder.FieldBuilder(mytb, "maybeSecure", typeof(string));
-        fb.SetConstant("hello");
-        ClassBuilder.FinalizeAndUse(mytb, t =>
-        {
-            dynamic x = ClassBuilder.New(mytb, [])!;
-            Console.WriteLine(Reflection.GetField(x, "maybeSecure"));
-            return null;
-        });
     }
-    
-    public class MyClass(int x)
-    {
-        private int _x = x;
+}
 
-        public void PrintX()
-        {
-            Console.WriteLine(_x.ToString());
-        }
+public class MyClass(int x)
+{
+    private readonly int _x = x;
+
+    public void PrintX()
+    {
+        Console.WriteLine(_x.ToString());
     }
 }

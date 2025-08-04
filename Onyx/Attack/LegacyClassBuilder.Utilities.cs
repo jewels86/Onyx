@@ -12,7 +12,7 @@ public enum OperatorType
     Implicit, Explicit
 }
 
-public static partial class ClassBuilder
+public static partial class LegacyClassBuilder
 {
     public static string OperatorToString(OperatorType op)
     {

@@ -5,7 +5,7 @@ using static Onyx.Shared.GeneralUtilities;
 
 namespace Onyx.Attack;
 
-public static partial class ClassBuilder
+public static partial class LegacyClassBuilder
 {
     public static TypeBuilder CreateTypeBuilder(string typeName,
         TypeAttributes typeAttributes = TypeAttributes.Public | TypeAttributes.Class, Type[]? interfaces = null)

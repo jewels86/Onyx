@@ -11,6 +11,5 @@ class Program
     static async Task Main(string[] args)
     {
         MyClassTest.Run();
-        await ILTest.Run();
     }
 }

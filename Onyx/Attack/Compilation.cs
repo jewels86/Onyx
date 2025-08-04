@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Scripting;
 using Onyx.Shared;
 using static Onyx.Attack.Reflection;
 using static Onyx.Shared.GeneralUtilities;
-using static Onyx.Attack.ClassBuilder;
+using static Onyx.Attack.LegacyClassBuilder;
 using Mono.Cecil;
 
 namespace Onyx.Attack;
@@ -62,7 +62,7 @@ public static partial class Compilation
     }
     #endregion
     #region Compliation
-    public static void Compile(string code, Assembly? targetAssembly = null)
+    public static void Compile(string code, Assembly? targetAssembly = null, CSharpCompilationOptions? options = null)
     {
         var assemblyName = NewGUID(8, true);
         var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
@@ -81,7 +81,7 @@ public static partial class Compilation
 
         var tree = CSharpSyntaxTree.ParseText(code);
         var compilation = CSharpCompilation.Create(assemblyName)
-            .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            .WithOptions(options ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             .AddSyntaxTrees(tree)
             .AddReferences(references);
 
@@ -97,7 +97,7 @@ public static partial class Compilation
         }
         
         peStream.Seek(0, SeekOrigin.Begin);
-        PostCompilation.Inject(targetAssemblyDefinition, peStream);
+        PostCompilation.AsmInject(targetAssemblyDefinition, peStream);
     }
     
     public static Type FromAssembly(Assembly assembly, string typeName)
