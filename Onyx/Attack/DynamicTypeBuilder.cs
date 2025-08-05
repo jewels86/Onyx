@@ -98,35 +98,6 @@ public partial class DynamicTypeBuilder
         sb.AppendLine("}");
 
         var (asm, tctx) = Compilation.Compile(sb.ToString());
-        var type = asm.GetType(Name);
-        var typeDef = PostCompilation.GetDefinitionFrom(Assembly.GetExecutingAssembly())?.MainModule.GetType(Name) ?? null;
-        if (typeDef == null || type == null)
-        {
-            throw new InvalidOperationException($"Type {Name} could not be found in the current assembly or the current assembly is not disk-based.");
-        }
-        foreach (var (fieldDef, field) in typeDef.Fields.OrderBy(x => x.Name).Zip(Fields.OrderBy(x => x.Name)))
-        {
-            if (fieldDef is not null && field.Value != null)
-            {
-                fieldDef.Constant = field.Value;
-            }
-        }
-        foreach (var (propertyDef, property) in typeDef.Properties.OrderBy(x => x.Name).Zip(Properties.OrderBy(x => x.Name)))
-        {
-            if (propertyDef is not null && property.Value != null)
-            {
-                propertyDef.Constant = property.Value;
-            }
-        }
-
-        foreach (var (actual, expected) in type.GetMethods().OrderBy(x => x.Name).Zip(Methods.OrderBy(x => x.Name)))
-        {
-            if (expected.CompiledDelegate != null)
-            {
-                PostCompilation.MethodInject(actual, prefix: expected.Method);
-            }
-        }
-
-        return Assembly.GetExecutingAssembly().GetType(Name) ?? throw new InvalidOperationException($"Type {Name} could not be found in the current assembly.");
+        
     }
 }

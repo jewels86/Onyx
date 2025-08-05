@@ -60,7 +60,8 @@ public static partial class Compilation
     }
     #endregion
     #region Compliation
-    public static (Assembly, TempContext) Compile(string code, string? assemblyName = null, TempContext? tctx = null)
+    public static (Assembly, TempContext) Compile(string code, string? assemblyName = null, TempContext? tctx = null,
+        Action<string>? beforeLoad = null)
     {
         if (assemblyName == null) assemblyName = NewGUID(8, true);
         var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
@@ -83,9 +84,11 @@ public static partial class Compilation
         var result = compilation.Emit(stream);
         
         if (!result.Success) throw new UnableToCompileException("Couldn't compile the code: " + FromStrings(result.Diagnostics.Select(x => x.ToString()), "\n"));
-
+        
         stream.Flush();
         stream.Dispose();
+
+        beforeLoad?.Invoke(path);
         
         var assembly = tctx.FromPath(path);
         tctx.AddedAssemblies.Add(path);
