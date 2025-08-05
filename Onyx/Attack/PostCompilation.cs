@@ -77,6 +77,11 @@ public static class PostCompilation
         harmony.Patch(target, prefix: new HarmonyMethod(prefix), postfix: new HarmonyMethod(postfix));
     }
 
+    public static void MethodInject(string code, MethodInfo target, Harmony? harmony = null)
+    {
+        
+    }
+
     public static string? ResolveAssemblyPath(AssemblyNameReference reference)
     {
         var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;

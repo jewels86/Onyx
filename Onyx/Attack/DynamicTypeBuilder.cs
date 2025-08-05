@@ -97,8 +97,8 @@ public partial class DynamicTypeBuilder
 
         sb.AppendLine("}");
 
-        Compilation.Compile(sb.ToString(), Assembly.GetExecutingAssembly());
-        var type = Assembly.GetExecutingAssembly().GetType(Name);
+        var (asm, tctx) = Compilation.Compile(sb.ToString());
+        var type = asm.GetType(Name);
         var typeDef = PostCompilation.GetDefinitionFrom(Assembly.GetExecutingAssembly())?.MainModule.GetType(Name) ?? null;
         if (typeDef == null || type == null)
         {
