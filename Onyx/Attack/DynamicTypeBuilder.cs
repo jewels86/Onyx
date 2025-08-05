@@ -15,7 +15,6 @@ public partial class DynamicTypeBuilder
     public List<Type> Interfaces { get; set; } = [];
     public Type? BaseType { get; set; } = null;
     
-    public List<Reflection.MethodPackage> Methods { get; set; } = [];
     public List<Reflection.FieldPackage> Fields { get; set; } = [];
     public List<Reflection.PropertyPackage> Properties { get; set; } = [];
     public List<string> RawMembers { get; set; } = [];
@@ -24,15 +23,6 @@ public partial class DynamicTypeBuilder
     {
         Name = name;
         Kind = kind;
-    }
-
-    public void AddMethod(Delegate function, string name, AccessModifier access)
-    {
-        var method = new Reflection.MethodPackage(function.GetMethodInfo());
-        method.Name = name;
-        method.Access = access;
-        method.CompiledDelegate = function;
-        Methods.Add(method);
     }
     
     public void AddField(string name, Type type, AccessModifier access = AccessModifier.Public, object? defaultValue = null)
@@ -62,7 +52,7 @@ public partial class DynamicTypeBuilder
         RawMembers.Add(member);
     }
 
-    public Type Build()
+    public (Type, Compilation.TempContext) Build()
     {
         StringBuilder sb = new();
         sb.AppendLine(Compilation.StandardUsings);
@@ -81,15 +71,6 @@ public partial class DynamicTypeBuilder
             sb.AppendLine($"    {AccessModifierToString(property.Access)} {GetCSharpTypeName(property.Type)} {property.Name} {{ get; set; }}");
         }
 
-        foreach (var method in Methods)
-        {
-            if (method.Name.Contains("operator"))
-                sb.AppendLine($"    public static {method.Name}({string.Join(", ", method.Parameters.Select(p => $"{GetCSharpTypeName(p)} {p.Name}"))})");
-            else
-                sb.AppendLine($"    {AccessModifierToString(method.Access)} {GetCSharpTypeName(method.ReturnType)} {method.Name}({string.Join(", ", method.Parameters.Select(p => $"{GetCSharpTypeName(p.Type)} {p.Name}"))})");
-            sb.AppendLine($"    {{ throw new NotImplementedException(); }}");
-        }
-
         foreach (string raw in RawMembers)
         {
             sb.AppendLine("    " + raw);
@@ -98,6 +79,8 @@ public partial class DynamicTypeBuilder
         sb.AppendLine("}");
 
         var (asm, tctx) = Compilation.Compile(sb.ToString());
-        
+        Type type = asm.GetType(Name) ??
+                    throw new Compilation.UnableToCompileException($"Type '{Name}' not found in compiled assembly.");
+        return (type, tctx);
     }
 }

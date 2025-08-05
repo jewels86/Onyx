@@ -29,7 +29,7 @@ public static class MyClassTest
             // We can do this by creating a new type with an implict int operator
             var dtb = new DynamicTypeBuilder("EvilInt");
             dtb.AddRawMember($"public static implicit operator int(EvilInt evil) {{ Console.WriteLine(\"Evil int is very evil\"); return 42; }}");
-            Type evilIntType = dtb.Build();
+            var (evilIntType, tctx) = dtb.Build();
             
             dynamic evilInt = Activator.CreateInstance(evilIntType)!;
             
@@ -37,7 +37,7 @@ public static class MyClassTest
             // Lets use this new "evilInt" type in our MyClass instance
             MyClass myClass = new MyClass(evilInt);
             myClass.PrintX();
-            
+            tctx.FullUnload();
         }
     }
 }
