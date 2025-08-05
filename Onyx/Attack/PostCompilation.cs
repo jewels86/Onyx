@@ -64,6 +64,7 @@ public static class PostCompilation
         {
             foreach (var type in module.Types.Where(t => !t.IsRuntimeSpecialName))
             {
+                if (type.Name == "<Module>") continue;
                 var importedType = ImportType(type, target.MainModule);
                 target.MainModule.Types.Add(importedType);
             }

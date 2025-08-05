@@ -78,6 +78,7 @@ public static partial class Compilation
             .Concat(PostCompilation.ExtractReferences(targetAssembly))
             .Distinct()
             .ToList();
+        
 
         var tree = CSharpSyntaxTree.ParseText(code);
         var compilation = CSharpCompilation.Create(assemblyName)
@@ -98,6 +99,7 @@ public static partial class Compilation
         
         peStream.Seek(0, SeekOrigin.Begin);
         PostCompilation.AsmInject(targetAssemblyDefinition, peStream);
+        targetAssemblyDefinition.Write(targetAssembly.Location);
     }
     
     public static Type FromAssembly(Assembly assembly, string typeName)

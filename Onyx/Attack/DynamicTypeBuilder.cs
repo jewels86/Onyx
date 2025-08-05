@@ -18,6 +18,7 @@ public partial class DynamicTypeBuilder
     public List<Reflection.MethodPackage> Methods { get; set; } = [];
     public List<Reflection.FieldPackage> Fields { get; set; } = [];
     public List<Reflection.PropertyPackage> Properties { get; set; } = [];
+    public List<string> RawMembers { get; set; } = [];
 
     public DynamicTypeBuilder(string name, TypeKind kind = TypeKind.Class)
     {
@@ -55,10 +56,16 @@ public partial class DynamicTypeBuilder
     {
         BaseType = type;
     }
+    
+    public void AddRawMember(string member)
+    {
+        RawMembers.Add(member);
+    }
 
     public Type Build()
     {
         StringBuilder sb = new();
+        sb.AppendLine(Compilation.StandardUsings);
         sb.Append($"{AccessModifierToString(Access)} {TypeKindToString(Kind)} {Name}");
         if (BaseType != null)
             sb.Append($" : {GetCSharpTypeName(BaseType)}");
@@ -76,11 +83,19 @@ public partial class DynamicTypeBuilder
 
         foreach (var method in Methods)
         {
-            sb.AppendLine($"    {AccessModifierToString(method.Access)} {GetCSharpTypeName(method.ReturnType)} {method.Name}({string.Join(", ", method.Parameters.Select(p => $"{GetCSharpTypeName(p.Type)} {p.Name}"))})");
-            sb.AppendLine($"    {{ return null!; }}");
+            if (method.Name.Contains("operator"))
+                sb.AppendLine($"    public static {method.Name}({string.Join(", ", method.Parameters.Select(p => $"{GetCSharpTypeName(p)} {p.Name}"))})");
+            else
+                sb.AppendLine($"    {AccessModifierToString(method.Access)} {GetCSharpTypeName(method.ReturnType)} {method.Name}({string.Join(", ", method.Parameters.Select(p => $"{GetCSharpTypeName(p.Type)} {p.Name}"))})");
+            sb.AppendLine($"    {{ throw new NotImplementedException(); }}");
         }
 
-        Console.WriteLine(sb.ToString());
+        foreach (string raw in RawMembers)
+        {
+            sb.AppendLine("    " + raw);
+        }
+
+        sb.AppendLine("}");
 
         Compilation.Compile(sb.ToString(), Assembly.GetExecutingAssembly());
         var type = Assembly.GetExecutingAssembly().GetType(Name);

@@ -1,4 +1,5 @@
 using Onyx.Attack;
+using Onyx.Shared;
 
 namespace Testing;
 
@@ -27,11 +28,7 @@ public static class MyClassTest
             // Lets trick our user into using a fake constant in their MyClass instance
             // We can do this by creating a new type with an implict int operator
             var dtb = new DynamicTypeBuilder("EvilInt");
-            dtb.AddMethod(() =>
-            {
-                Console.WriteLine("Evil int is very evil");
-                return 42;
-            }, "implicit operator int", AccessModifier.Public | AccessModifier.Static);
+            dtb.AddRawMember($"public static implicit operator int(EvilInt evil) {{ Console.WriteLine(\"Evil int is very evil\"); return 42; }}");
             Type evilIntType = dtb.Build();
             
             dynamic evilInt = Activator.CreateInstance(evilIntType)!;

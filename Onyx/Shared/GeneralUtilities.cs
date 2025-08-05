@@ -39,4 +39,18 @@ public static class GeneralUtilities
         if (t.IsArray) return GetCSharpTypeName(t.GetElementType()!) + "[]";
         return t.FullName ?? t.Name;
     }
+
+    public static string GetCSharpTypeName(object? obj)
+    {
+        Type? type = obj?.GetType();
+        if (type is null) return "null";
+        if (obj is DynamicTypeName dtn) return dtn.Name;
+        return GetCSharpTypeName(type);
+
+    }
+
+    public class DynamicTypeName(string name)
+    {
+        public string Name { get; set; } = name;
+    }
 }
