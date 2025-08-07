@@ -143,13 +143,12 @@ public partial class Registry
 
     public static List<WeakVariablePackage> GetReferences(object instance)
     {
-        List<InstanceWeakVariablePackage> packages = Reflection.GetAllFields(instance)
-            .Select(x => ((IVariablePackage)x, InstanceType.Field))
-            .Concat(Reflection.GetAllProperties(instance).Select(x => ((IVariablePackage)x, InstanceType.Property)))
+        List<InstanceWeakVariablePackage> packages = WithInstanceType(Reflection.GetAllFields(instance), InstanceType.Field)
+            .Concat(WithInstanceType(Reflection.GetAllProperties(instance), InstanceType.Property))
             .Select(x => 
                 new InstanceWeakVariablePackage(x.Item1.Name, x.Item1.Value, x.Item1.Access, x.Item2, x.Item1.Result)).ToList();
         return packages.Select(x => new WeakVariablePackage(x.Name, x.Value, x.Access, x.Result)).ToList();
-    } // TODO: add some static methods to make that a little easier
+    }
 
     public static List<Node> GetReferences(Node node, int time)
     {
@@ -188,7 +187,6 @@ public partial class Registry
     }
     #endregion
     #region Utilities
-
     public static string InstanceTypeToLabel(InstanceType type)
     {
         StringBuilder sb = new();
@@ -197,6 +195,11 @@ public partial class Registry
         if (type.HasFlag(InstanceType.Field)) sb.Append("field ");
         if (type.HasFlag(InstanceType.Property)) sb.Append("property ");
         return sb.ToString().Trim();
+    }
+
+    public static IEnumerable<(IVariablePackage, InstanceType)> WithInstanceType(IEnumerable<IVariablePackage> packages, InstanceType type)
+    {
+        return packages.Select(x => (x, type));
     }
     #endregion
 }
