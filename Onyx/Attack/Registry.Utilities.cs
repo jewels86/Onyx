@@ -110,14 +110,15 @@ public partial class Registry
     
     public class AssemblyNode : Node
     {
-        public Assembly Assembly { get; }
-        
+        public WeakReference<Assembly> Reference { get; }
+        public Assembly? Assembly => Reference.TryGetTarget(out var asm) ? asm : null;
+
         public AssemblyNode(int id, Assembly assembly, int time, string? name = null) 
             : base(id, name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true), time)
         {
-            Assembly = assembly;
+            Reference = new(assembly);
         }
-        
+
         public override string ToString() => $"(Assembly) {Name}";
     }
     
@@ -125,13 +126,13 @@ public partial class Registry
     {
         public WeakReference<Type> Reference { get; }
         public Type? Type => Reference.TryGetTarget(out var type) ? type : null;
-        
+
         public TypeNode(int id, Type type, int time, string? name = null) 
             : base(id, name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true), time)
         {
             Reference = new(type);
         }
-        
+
         public override string ToString() => $"(Type) {Name}";
     }
 
