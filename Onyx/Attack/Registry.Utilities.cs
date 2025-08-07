@@ -20,7 +20,7 @@ public partial class Registry
         public Node(int id, string name, int time)
         {
             Id = id;
-            Name = name;
+            Name = string.IsNullOrEmpty(name) ? name : string.Intern(name);
             Edges = [];
             Time = time;
         }
@@ -77,7 +77,7 @@ public partial class Registry
         public InstanceType InstanceType { get; set; }
         
         public InstanceWeakVariablePackage(string name, object? value, AccessModifier access, InstanceType instanceType, ReflectionResult result = ReflectionResult.Success) 
-            : base(name, value, access, result)
+            : base(string.IsNullOrEmpty(name) ? name : string.Intern(name), value, access, result)
         {
             InstanceType = instanceType;
         }
@@ -100,7 +100,7 @@ public partial class Registry
         public AppDomain AppDomain { get; }
         
         public AppDomainNode(int id, AppDomain appDomain, int time, string? name = null) 
-            : base(id, name ?? appDomain.FriendlyName, time)
+            : base(id, string.IsNullOrEmpty(name ?? appDomain.FriendlyName) ? (name ?? appDomain.FriendlyName) : string.Intern(name ?? appDomain.FriendlyName), time)
         {
             AppDomain = appDomain;
         }
@@ -114,7 +114,7 @@ public partial class Registry
         public Assembly? Assembly => Reference.TryGetTarget(out var asm) ? asm : null;
 
         public AssemblyNode(int id, Assembly assembly, int time, string? name = null) 
-            : base(id, name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true), time)
+            : base(id, string.IsNullOrEmpty(name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true)) ? (name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true)) : string.Intern(name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true)), time)
         {
             Reference = new(assembly);
         }
@@ -128,7 +128,7 @@ public partial class Registry
         public Type? Type => Reference.TryGetTarget(out var type) ? type : null;
 
         public TypeNode(int id, Type type, int time, string? name = null) 
-            : base(id, name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true), time)
+            : base(id, string.IsNullOrEmpty(name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true)) ? (name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true)) : string.Intern(name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true)), time)
         {
             Reference = new(type);
         }
@@ -143,7 +143,7 @@ public partial class Registry
         public InstanceType InstanceType { get; set; }
         
         public InstanceNode(int id, object instance, int time, InstanceType instanceType, string? name = null, Type? type = null) 
-            : base(id, name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true), time)
+            : base(id, string.IsNullOrEmpty(name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)) ? (name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)) : string.Intern(name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)), time)
         {
             Instance = new(instance);
             Type = type ?? instance.GetType();
