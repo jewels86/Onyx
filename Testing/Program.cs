@@ -12,5 +12,6 @@ class Program
     {
         MyClassTest.Run();
         await CompilationTest.Run();
+        RegistryTest.Run();
     }
 }

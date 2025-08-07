@@ -1,6 +1,7 @@
-using User.Components;
+using Slate.Components;
+using Weikio.PluginFramework;
 
-namespace User;
+namespace Slate;
 
 public class Program
 {

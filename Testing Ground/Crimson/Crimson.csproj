@@ -8,7 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Onyx\Onyx.csproj" />
-      <ProjectReference Include="..\Gray\Gray.csproj" />
+      <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
 
 </Project>

@@ -7,8 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Weikio.PluginFramework" Version="1.6.0-beta3" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\Crimson\Crimson.csproj" />
-      <ProjectReference Include="..\Gray\Gray.csproj" />
+      <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
 
 </Project>

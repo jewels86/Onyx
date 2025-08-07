@@ -180,6 +180,28 @@ public static partial class Reflection
         }
     }
     
+    public class WeakVariablePackage : VariablePackage
+    {
+        public WeakReference<object?> Reference { get; set; }
+
+        public new object? Value
+        {
+            get
+            {
+                if (Reference.TryGetTarget(out var target))
+                    return target;
+                return null;
+            }
+            set { Reference = new(value); }
+        }
+        
+        public WeakVariablePackage(string name, object? value, AccessModifier access, ReflectionResult result = ReflectionResult.Success)
+            : base(name, value, access, result)
+        {
+            Reference = new(value);
+        }
+    }
+    
     public struct InspectionResult
     {
         public Type Type { get; set; }
