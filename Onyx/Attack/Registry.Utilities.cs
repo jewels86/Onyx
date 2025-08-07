@@ -24,15 +24,19 @@ public partial class Registry
             Time = time;
         }
         
-        public Node WithEdgeTo(Node to, EdgeType edgeType, string label)
+        public Node WithEdgeTo(Node to, EdgeType edgeType, string label, bool bidirectional = false)
         {
-            Edges.Add(new Edge(to, this, edgeType, label));
+            if (bidirectional)
+                to.Edges.Add(new Edge(to, this, edgeType, label));
+            Edges.Add(new Edge(this, to, edgeType, label));
             return this;
         }
         
-        public Node WithEdgeFrom(Node from, EdgeType edgeType, string label)
+        public Node WithEdgeFrom(Node from, EdgeType edgeType, string label, bool bidirectional = false)
         {
-            Edges.Add(new Edge(this, from, edgeType, label));
+            Edges.Add(new Edge(from, this, edgeType, label));
+            if (bidirectional)
+                from.Edges.Add(new Edge(this, from, edgeType, label));
             return this;
         }
     }
@@ -51,13 +55,17 @@ public partial class Registry
             EdgeType = edgeType;
             Label = label;
         }
+        
+        public override string ToString() => $"{From.Name} {Label} {To.Name} ({EdgeType})";
     }
     
     public enum EdgeType 
     {
+        AppDomainContainsAssembly,
         AssemblyContainsType,
         TypeHasInstance,
-        InstanceHasInstance
+        InstanceHasInstance,
+        InstanceHasType
     }
 
     public class InstanceWeakVariablePackage : WeakVariablePackage
@@ -83,15 +91,30 @@ public partial class Registry
     }
     #endregion
     #region Node Implementations
+    public class AppDomainNode : Node
+    {
+        public AppDomain AppDomain { get; }
+        
+        public AppDomainNode(int id, AppDomain appDomain, int time, string? name = null) 
+            : base(id, name ?? appDomain.FriendlyName, time)
+        {
+            AppDomain = appDomain;
+        }
+        
+        public override string ToString() => $"(AppDomain) {Name}";
+    }
+    
     public class AssemblyNode : Node
     {
         public Assembly Assembly { get; }
         
         public AssemblyNode(int id, Assembly assembly, int time, string? name = null) 
-            : base(id, name ?? assembly.FullName ?? "unknown_" + NewGUID(8, true), time)
+            : base(id, name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true), time)
         {
             Assembly = assembly;
         }
+        
+        public override string ToString() => $"(Assembly) {Name}";
     }
     
     public class TypeNode : Node
@@ -100,10 +123,12 @@ public partial class Registry
         public Type? Type => Reference.TryGetTarget(out var type) ? type : null;
         
         public TypeNode(int id, Type type, int time, string? name = null) 
-            : base(id, name ?? type.FullName ?? "unknown_" + NewGUID(8, true), time)
+            : base(id, name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true), time)
         {
             Reference = new(type);
         }
+        
+        public override string ToString() => $"(Type) {Name}";
     }
 
     public class InstanceNode : Node
@@ -113,15 +138,22 @@ public partial class Registry
         public InstanceType InstanceType { get; set; }
         
         public InstanceNode(int id, object instance, int time, InstanceType instanceType, string? name = null, Type? type = null) 
-            : base(id, name ?? instance.GetType().FullName ?? "unknown_" + NewGUID(8, true), time)
+            : base(id, name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true), time)
         {
             Instance = new(instance);
             Type = type ?? instance.GetType();
             InstanceType = instanceType;
         }
+        
+        public override string ToString() => $"(Instance) {InstanceTypeToLabel(InstanceType)} {Name} : {Type.FullName}";
     }
     #endregion
     #region References
+    public static List<Assembly> GetReferences(AppDomain appDomain)
+    {
+        return appDomain.GetAssemblies().ToList();
+    }
+    
     public static List<Type> GetReferences(Assembly asm)
     {
         Type[] types;
@@ -152,36 +184,50 @@ public partial class Registry
 
     public static List<Node> GetReferences(Node node, int time)
     {
+        if (node is AppDomainNode appDomainNode)
+        {
+            return GetReferences(appDomainNode.AppDomain)
+                .Select(x => new AssemblyNode(TryGetHashCode(x), x, time, x.FullName)
+                    .WithEdgeFrom(appDomainNode, EdgeType.AppDomainContainsAssembly, "contains", true))
+                .ToList();
+        }
         if (node is AssemblyNode asmNode)
         {
             return GetReferences(asmNode.Assembly)
-                .Select(x => new TypeNode(x.GetHashCode(), x, time, GetCSharpTypeName(x))
-                    .WithEdgeFrom(asmNode, EdgeType.AssemblyContainsType, "contains")).ToList();
+                .Select(x => new TypeNode(TryGetHashCode(x), x, time, GetCSharpTypeName(x))
+                    .WithEdgeFrom(asmNode, EdgeType.AssemblyContainsType, "contains", true))
+                .ToList();
         }
 
         if (node is TypeNode typeNode)
         {
             if (typeNode.Type is null) return [];
             return GetReferences(typeNode.Type)
+                .Where(x => x.Value != null)
                 .Select(x =>
                 {
                     object? val = x.Value;
                     if (val is null) return null;
-                    return new InstanceNode(val.GetHashCode(), val, time, x.InstanceType, x.Name, typeNode.Type)
-                        .WithEdgeFrom(typeNode, EdgeType.TypeHasInstance, "has instance");
-                }).Where(x => x != null).ToList()!;
+                    return new InstanceNode(TryGetHashCode(val), val, time, x.InstanceType, x.Name, typeNode.Type)
+                        .WithEdgeFrom(typeNode, EdgeType.TypeHasInstance, "has instance", true);
+                })
+                .Where(x => x != null)
+                .ToList()!;
         } 
         if (node is InstanceNode instanceNode)
         {
             if (!instanceNode.Instance.TryGetTarget(out var inst)) return [];
             return GetReferences(inst)
+                .Where(x => x.Value != null)
                 .Select(x =>
                 {
                     object? val = x.Value;
                     if (val is null) return null;
-                    return new InstanceNode(val.GetHashCode(), val, time, InstanceType.Field, x.Name, instanceNode.Type)
-                        .WithEdgeFrom(instanceNode, EdgeType.InstanceHasInstance, "has instance");
-                }).Where(x => x != null).ToList()!;
+                    return new InstanceNode(TryGetHashCode(val), val, time, InstanceType.Field, x.Name, instanceNode.Type)
+                        .WithEdgeFrom(instanceNode, EdgeType.InstanceHasInstance, "has instance", true);
+                })
+                .Where(x => x != null)
+                .ToList()!;
         }
         return [];
     }
@@ -200,6 +246,39 @@ public partial class Registry
     public static IEnumerable<(IVariablePackage, InstanceType)> WithInstanceType(IEnumerable<IVariablePackage> packages, InstanceType type)
     {
         return packages.Select(x => (x, type));
+    }
+
+    public void PrintGraph(Node node)
+    {
+        HashSet<int> visited = new();
+        Queue<(Node, int)> queue = new();
+        queue.Enqueue((node, 0));
+
+        while (queue.Count > 0)
+        {
+            var (current, depth) = queue.Dequeue();
+            if (!visited.Add(current.Id)) continue;
+
+            Console.WriteLine($"{new string(' ', depth * 2)}- {current}");
+
+            foreach (var edge in current.Edges)
+            {
+                Console.WriteLine($"{new string(' ', (depth + 1) * 2)}-> {edge.To} [{edge.Label}] ({edge.EdgeType})");
+                if (!visited.Contains(edge.To.Id))
+                    queue.Enqueue((edge.To, depth + 1));
+            }
+        }
+    }
+
+    public Node? GetRoot(int time)
+    {
+        return Nodes[time].Where(x => x.Value is Registry.AppDomainNode).Select(x => x.Value).FirstOrDefault();
+    }
+
+    public static int TryGetHashCode(object? obj)
+    {
+        try { return obj?.GetHashCode() ?? -1; }
+        catch { return -1; }
     }
     #endregion
 }

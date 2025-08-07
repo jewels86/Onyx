@@ -86,7 +86,7 @@ public static partial class Reflection
     public static FieldPackage GetStaticField(Type type, string fieldName)
     {
         var field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-        return new(field) { Value = field?.GetRawConstantValue() ?? field?.GetValue(null) };
+        return new(field) { Value = field?.TryGetRawConstantValue() ?? field?.TryGetValue(null) };
     }
     
     public static ReflectionResult SetStaticField(Type type, string fieldName, object value)
@@ -104,7 +104,7 @@ public static partial class Reflection
     public static PropertyPackage GetStaticProperty(Type type, string propertyName)
     {
         var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-        return new(property) { Value = property?.GetValue(null) ?? property?.GetRawConstantValue() };
+        return new(property) { Value = property?.TryGetValue(null) ?? property?.TryGetRawConstantValue() };
     }
     
     public static ReflectionResult SetStaticProperty(Type type, string propertyName, object value)
@@ -149,19 +149,18 @@ public static partial class Reflection
         return properties.Select(p => new PropertyPackage(p) { Value = p.GetValue(null) ?? p.GetRawConstantValue() }).ToList();
     }
     #endregion
-
     #region Extra Getters and Setters
 
     public static List<FieldPackage> GetAllFields(Type type)
     {
         var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-        return fields.Select(f => new FieldPackage(f) { Value = f.IsStatic ? f.GetRawConstantValue() ?? f.GetValue(null) : null }).ToList();
+        return fields.Select(f => new FieldPackage(f) { Value = f.TryGetRawConstantValue() ?? f.TryGetValue(null) }).ToList();
     }
     
     public static List<PropertyPackage> GetAllProperties(Type type)
     {
         var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
-        return properties.Select(p => new PropertyPackage(p) { Value = p.GetMethod != null && p.GetMethod.IsStatic ? p.GetValue(null) ?? p.GetRawConstantValue() : null }).ToList();
+        return properties.Select(p => new PropertyPackage(p) { Value = p.TryGetValue(null) ?? p.TryGetRawConstantValue() }).ToList();
     }
 
     #endregion

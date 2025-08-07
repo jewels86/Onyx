@@ -227,6 +227,60 @@ public static partial class Reflection
 
         return attributes;
     }
+
+    #region Try Get Values
+    public static object? TryGetRawConstantValue(this FieldInfo field)
+    {
+        try
+        {
+            return field.GetRawConstantValue();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+    public static object? TryGetRawConstantValue(this PropertyInfo property)
+    {
+        try
+        {
+            var getMethod = property.GetGetMethod(true);
+            if (getMethod != null && getMethod.IsStatic && getMethod.GetParameters().Length == 0)
+            {
+                return getMethod.Invoke(null, null);
+            }
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static object? TryGetValue(this FieldInfo field, object? obj)
+    {
+        try
+        {
+            return field.GetValue(obj);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static object? TryGetValue(this PropertyInfo property, object? obj)
+    {
+        try
+        {
+            return property.GetValue(obj);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+    #endregion
 }
 
 [Flags]
