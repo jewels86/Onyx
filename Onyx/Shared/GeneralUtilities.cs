@@ -48,6 +48,19 @@ public static class GeneralUtilities
         return GetCSharpTypeName(type);
 
     }
+    
+    public static T TryCatch<T>(Func<T> func, Action<Exception, T>? errorHandler, T defaultValue = default!)
+    {
+        try
+        {
+            return func();
+        }
+        catch (Exception ex)
+        {
+            errorHandler?.Invoke(ex, defaultValue);
+            return defaultValue;
+        }
+    }
 
     public class DynamicTypeName(string name)
     {

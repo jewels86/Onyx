@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Onyx.Shared;
 using static Onyx.Attack.Reflection;
 using static Onyx.Shared.GeneralUtilities;
 
@@ -39,6 +40,9 @@ public partial class Registry
                 from.Edges.Add(new Edge(this, from, edgeType, label));
             return this;
         }
+        
+        public List<Edge> DownstreamEdges() => Edges.Where(e => e.From == this).ToList();
+        public List<Edge> UpstreamEdges() => Edges.Where(e => e.To == this).ToList();
     }
 
     public class Edge
@@ -248,11 +252,18 @@ public partial class Registry
         return packages.Select(x => (x, type));
     }
 
-    public void PrintGraph(Node node)
+    /// <summary>
+    /// Prints the graph starting from the given node using BFS.
+    /// </summary>
+    /// <param name="node">The node to print from.</param>
+    /// <param name="getEdges">A function specifying which edges to use from a given node.</param>
+    /// <remarks><b>DO NOT</b> use this with <see cref="GetRoot"/> unless your tree is controlled.</remarks>
+    public void PrintGraph(Node node, Func<Node, List<Edge>>? getEdges = null)
     {
         HashSet<int> visited = new();
         Queue<(Node, int)> queue = new();
         queue.Enqueue((node, 0));
+        if (getEdges is null) getEdges = n => n.Edges;
 
         while (queue.Count > 0)
         {
@@ -261,7 +272,7 @@ public partial class Registry
 
             Console.WriteLine($"{new string(' ', depth * 2)}- {current}");
 
-            foreach (var edge in current.Edges)
+            foreach (var edge in getEdges(current))
             {
                 Console.WriteLine($"{new string(' ', (depth + 1) * 2)}-> {edge.To} [{edge.Label}] ({edge.EdgeType})");
                 if (!visited.Contains(edge.To.Id))
@@ -269,16 +280,28 @@ public partial class Registry
             }
         }
     }
-
+    
     public Node? GetRoot(int time)
     {
-        return Nodes[time].Where(x => x.Value is Registry.AppDomainNode).Select(x => x.Value).FirstOrDefault();
+        try
+        {
+            return Nodes[time].Where(x => x.Value is AppDomainNode).Select(x => x.Value).FirstOrDefault();
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public static int TryGetHashCode(object? obj)
     {
         try { return obj?.GetHashCode() ?? -1; }
         catch { return -1; }
+    }
+
+    public Node? Get(object obj, int time)
+    {
+        return GeneralUtilities.TryCatch(() => Nodes[time][TryGetHashCode(obj)], null, null);
     }
     #endregion
 }
