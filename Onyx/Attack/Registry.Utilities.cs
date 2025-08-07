@@ -257,8 +257,9 @@ public partial class Registry
     /// </summary>
     /// <param name="node">The node to print from.</param>
     /// <param name="getEdges">A function specifying which edges to use from a given node.</param>
+    /// <param name="depthLimit">The recursion limit on printing.</param>
     /// <remarks><b>DO NOT</b> use this with <see cref="GetRoot"/> unless your tree is controlled.</remarks>
-    public void PrintGraph(Node node, Func<Node, List<Edge>>? getEdges = null)
+    public void PrintGraph(Node node, Func<Node, List<Edge>>? getEdges = null, int depthLimit = -1)
     {
         HashSet<int> visited = new();
         Queue<(Node, int)> queue = new();
@@ -272,11 +273,15 @@ public partial class Registry
 
             Console.WriteLine($"{new string(' ', depth * 2)}- {current}");
 
-            foreach (var edge in getEdges(current))
+            // Only print/traverse edges if depthLimit is not reached
+            if (depthLimit == -1 || depth < depthLimit)
             {
-                Console.WriteLine($"{new string(' ', (depth + 1) * 2)}-> {edge.To} [{edge.Label}] ({edge.EdgeType})");
-                if (!visited.Contains(edge.To.Id))
-                    queue.Enqueue((edge.To, depth + 1));
+                foreach (var edge in getEdges(current))
+                {
+                    Console.WriteLine($"{new string(' ', (depth + 1) * 2)}-> {edge.To} [{edge.Label}] ({edge.EdgeType})");
+                    if (!visited.Contains(edge.To.Id))
+                        queue.Enqueue((edge.To, depth + 1));
+                }
             }
         }
     }

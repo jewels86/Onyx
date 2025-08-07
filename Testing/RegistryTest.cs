@@ -10,6 +10,6 @@ public static class RegistryTest
         Console.WriteLine($"Registry built with {registry.Nodes[0].Count} snapshots.");
         Console.WriteLine($"MyClass definition downstream:");
         if (registry.Get(typeof(MyClass), 0) is Registry.TypeNode myClassNode) 
-            registry.PrintGraph(myClassNode, n => n.DownstreamEdges());
+            registry.PrintGraph(myClassNode, n => n.DownstreamEdges(), 2);
     }
 }
