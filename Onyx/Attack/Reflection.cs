@@ -60,6 +60,110 @@ public static partial class Reflection
             };
         return new MethodPackage(method);
     }
+    
+    public static List<FieldPackage> GetAllFields(object obj)
+    {
+        var type = obj.GetType();
+        var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        return fields.Select(f => new FieldPackage(f, obj)).ToList();
+    }
+
+    public static List<PropertyPackage> GetAllProperties(object obj)
+    {
+        var type = obj.GetType();
+        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        return properties.Select(p => new PropertyPackage(p, obj)).ToList();
+    }
+    
+    public static List<MethodPackage> GetAllMethods(object obj)
+    {
+        var type = obj.GetType();
+        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        return methods.Select(m => new MethodPackage(m)).ToList();
+    }
+    #endregion
+    #region Static Getters and Setters
+    public static FieldPackage GetStaticField(Type type, string fieldName)
+    {
+        var field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+        return new(field) { Value = field?.GetRawConstantValue() ?? field?.GetValue(null) };
+    }
+    
+    public static ReflectionResult SetStaticField(Type type, string fieldName, object value)
+    {
+        var field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+        if (field == null) return ReflectionResult.FieldNotFound;
+
+        try { field.SetValue(null, value); }
+        catch (ArgumentException) { return ReflectionResult.IncorrectType;}
+        return ReflectionResult.Success;
+        // setting static readonly fields via reflection may not work as expected
+        // PreCompilation should probably be used for this
+    }
+    
+    public static PropertyPackage GetStaticProperty(Type type, string propertyName)
+    {
+        var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+        return new(property) { Value = property?.GetValue(null) ?? property?.GetRawConstantValue() };
+    }
+    
+    public static ReflectionResult SetStaticProperty(Type type, string propertyName, object value)
+    {
+        var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+        if (property == null) return ReflectionResult.PropertyNotFound;
+        var setter = property.GetSetMethod(true);
+        if (setter == null) return ReflectionResult.SetPropertyNotFound;
+        
+        setter.Invoke(null, [value]);
+        return ReflectionResult.Success;
+        // again, this may not work exactly as expected
+        // i would say use PreCompilation to make sure the setter does what you want first
+        // TODO
+    }
+    
+    public static MethodPackage GetStaticMethod(Type type, string methodName)
+    {
+        var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+        if (method == null)
+            return new MethodPackage()
+            {
+                Access = AccessModifier.None,
+                CompiledDelegate = null,
+                Method = null,
+                Name = methodName,
+                Parameters = [],
+                ReturnType = typeof(object),
+                Result = ReflectionResult.MethodNotFound
+            };
+        return new MethodPackage(method);
+    }
+    
+    public static List<FieldPackage> GetAllStaticFields(Type type)
+    {
+        var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+        return fields.Select(f => new FieldPackage(f) { Value = f.GetRawConstantValue() ?? f.GetValue(null) }).ToList();
+    }
+    public static List<PropertyPackage> GetAllStaticProperties(Type type)
+    {
+        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+        return properties.Select(p => new PropertyPackage(p) { Value = p.GetValue(null) ?? p.GetRawConstantValue() }).ToList();
+    }
+    #endregion
+
+    #region Extra Getters and Setters
+
+    public static List<FieldPackage> GetAllFields(Type type)
+    {
+        var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+        return fields.Select(f => new FieldPackage(f) { Value = f.IsStatic ? f.GetRawConstantValue() ?? f.GetValue(null) : null }).ToList();
+    }
+    
+    public static List<PropertyPackage> GetAllProperties(Type type)
+    {
+        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+        return properties.Select(p => new PropertyPackage(p) { Value = p.GetMethod != null && p.GetMethod.IsStatic ? p.GetValue(null) ?? p.GetRawConstantValue() : null }).ToList();
+    }
+
     #endregion
     #region Utility Methods (for inspection)
 
@@ -103,7 +207,6 @@ public static partial class Reflection
     }
     #endregion
     #region Utility Methods
-
     public static VariablePackage FromObject(Expression<Func<object>> objPointer)
     {
         try

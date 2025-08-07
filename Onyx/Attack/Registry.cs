@@ -12,19 +12,8 @@ public partial class Registry
     
     public Registry() {}
 
-    public void Scan()
+    public void Build(Node node)
     {
-        ConcurrentDictionary<int, Node> graph = new();
-        int time = Times.Select(x => x.Key).Order().First() + 1;
         
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-        foreach (var asm in assemblies)
-        {
-            var asmHashCode = asm.GetHashCode();
-            graph[asmHashCode] = new(asmHashCode, asm.FullName ?? "unknown_" + GeneralUtilities.NewGUID(8, true), time);
-
-            var asmTypes = asm.GetTypes();
-            
-        }
     }
 }

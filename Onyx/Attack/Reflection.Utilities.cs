@@ -37,7 +37,7 @@ public static partial class Reflection
         public AccessModifier Access { get; set; }
         public ReflectionResult Result { get; set; }
 
-        public FieldPackage(FieldInfo? field, object obj)
+        public FieldPackage(FieldInfo? field, object? obj)
         {
             Name = field?.Name ?? "unknown";
             Type = field?.FieldType ?? typeof(object);
@@ -78,7 +78,7 @@ public static partial class Reflection
         public AccessModifier Access { get; set; }
         public ReflectionResult Result { get; set; }
 
-        public PropertyPackage(PropertyInfo? property, object obj)
+        public PropertyPackage(PropertyInfo? property, object? obj)
         {
             Name = property?.Name ?? "unknown";
             Type = property?.PropertyType ?? typeof(object);
