@@ -25,42 +25,42 @@ public partial class Registry
             Time = time;
         }
         
-        public Node WithEdgeTo(Node to, EdgeType edgeType, string label, bool bidirectional = false)
+        public Node WithEdgeTo(Node to, EdgeType edgeType, string? label = null, bool bidirectional = false)
         {
             if (bidirectional)
-                to.Edges.Add(new Edge(to, this, edgeType, label));
-            Edges.Add(new Edge(this, to, edgeType, label));
+                to.Edges.Add(new Edge(to, this, edgeType));
+            Edges.Add(new Edge(this, to, edgeType));
             return this;
         }
         
-        public Node WithEdgeFrom(Node from, EdgeType edgeType, string label, bool bidirectional = false)
+        public Node WithEdgeFrom(Node from, EdgeType edgeType, string? label = null, bool bidirectional = false)
         {
-            Edges.Add(new Edge(from, this, edgeType, label));
+            Edges.Add(new Edge(from, this, edgeType));
             if (bidirectional)
-                from.Edges.Add(new Edge(this, from, edgeType, label));
+                from.Edges.Add(new Edge(this, from, edgeType));
             return this;
         }
         
-        public List<Edge> DownstreamEdges() => Edges.Where(e => e.From == this).ToList();
-        public List<Edge> UpstreamEdges() => Edges.Where(e => e.To == this).ToList();
+        public List<Edge> DownstreamEdges() => Edges.Where(e => e.FromId == this.Id).ToList();
+        public List<Edge> UpstreamEdges() => Edges.Where(e => e.ToId == this.Id).ToList();
     }
 
-    public class Edge
+    public readonly struct Edge
     {
-        public Node To { get; }
-        public Node From { get; }
-        public string Label { get; }
+        public int ToId { get; }
+        public int FromId { get; }
+        public string Label => GetFriendlyEdgeLabel(EdgeType);
         public EdgeType EdgeType { get; }
-        
-        public Edge(Node to, Node from, EdgeType edgeType, string label)
+
+        public Edge(Node to, Node from, EdgeType edgeType, string? label = null)
         {
-            To = to;
-            From = from;
+            ToId = to.Id;
+            FromId = from.Id;
             EdgeType = edgeType;
-            Label = label;
+            // label parameter is ignored for visualization, Label is computed
         }
-        
-        public override string ToString() => $"{From.Name} {Label} {To.Name} ({EdgeType})";
+
+        public override string ToString() => $"{FromId} {Label} {ToId} ({EdgeType})";
     }
     
     public enum EdgeType 
@@ -273,14 +273,17 @@ public partial class Registry
 
             Console.WriteLine($"{new string(' ', depth * 2)}- {current}");
 
-            // Only print/traverse edges if depthLimit is not reached
             if (depthLimit == -1 || depth < depthLimit)
             {
                 foreach (var edge in getEdges(current))
                 {
-                    Console.WriteLine($"{new string(' ', (depth + 1) * 2)}-> {edge.To} [{edge.Label}] ({edge.EdgeType})");
-                    if (!visited.Contains(edge.To.Id))
-                        queue.Enqueue((edge.To, depth + 1));
+                    var targetNode = Nodes[current.Time].TryGetValue(edge.ToId, out var n) ? n : null;
+                    if (targetNode != null)
+                    {
+                        Console.WriteLine($"{new string(' ', (depth + 1) * 2)}-> {targetNode} [{edge.Label}] ({edge.EdgeType})");
+                        if (!visited.Contains(edge.ToId))
+                            queue.Enqueue((targetNode, depth + 1));
+                    }
                 }
             }
         }
@@ -307,6 +310,19 @@ public partial class Registry
     public Node? Get(object obj, int time)
     {
         return GeneralUtilities.TryCatch(() => Nodes[time][TryGetHashCode(obj)], null, null);
+    }
+
+    public static string GetFriendlyEdgeLabel(EdgeType type)
+    {
+        return type switch
+        {
+            EdgeType.AppDomainContainsAssembly => "contains assembly",
+            EdgeType.AssemblyContainsType => "contains type",
+            EdgeType.TypeHasInstance => "has instance",
+            EdgeType.InstanceHasInstance => "has instance",
+            EdgeType.InstanceHasType => "is of type",
+            _ => "related to"
+        };
     }
     #endregion
 }
