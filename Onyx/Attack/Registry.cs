@@ -7,48 +7,24 @@ namespace Onyx.Attack;
 
 public partial class Registry
 {
-    public ConcurrentDictionary<string, Assembly> Assemblies { get; } = [];
-    public ConcurrentDictionary<string, WeakReference<Type>> Types { get; } = [];
-    public ConcurrentDictionary<string, WeakVariablePackage> Objects { get; } = [];
-
-    public Registry()
-    {
-        Scan();
-    }
+    public List<ConcurrentDictionary<int, Node>> Nodes { get; } = [];
+    public ConcurrentDictionary<int, DateTime> Times { get; } = new();
+    
+    public Registry() {}
 
     public void Scan()
     {
+        ConcurrentDictionary<int, Node> graph = new();
+        int time = Times.Select(x => x.Key).Order().First() + 1;
+        
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
         foreach (var asm in assemblies)
         {
-            string asmName = asm.FullName ?? asm.GetName().Name ?? "<unknown>" + GeneralUtilities.NewGUID(8, true);
-            if (!Assemblies.ContainsKey(asmName))
-                Assemblies[asmName] = asm;
-            Type[] foundTypes;
-            try { foundTypes = asm.GetTypes(); }
-            catch (ReflectionTypeLoadException ex) { foundTypes = ex.Types.Where(t => t != null).ToArray()!; }
+            var asmHashCode = asm.GetHashCode();
+            graph[asmHashCode] = new(asmHashCode, asm.FullName ?? "unknown_" + GeneralUtilities.NewGUID(8, true), time);
 
-            Queue<object> toProcess = new();
-            while (toProcess.Count > 0)
-            {
-                var o = toProcess.Dequeue();
-                List<WeakVariablePackage> vars;
-                List<Type> types;
-                if (o is Type type)
-                {
-                    (vars, types) = Enumerate(type);
-                }
-                else if (o is object obj)
-                {
-                    (vars, types) = Enumerate(obj);
-                }
-                else continue;
-
-                foreach (var v in vars)
-                {
-                    Console.WriteLine(v.Name);
-                }
-            }
+            var asmTypes = asm.GetTypes();
+            
         }
     }
 }

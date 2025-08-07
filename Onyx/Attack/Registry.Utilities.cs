@@ -1,49 +1,70 @@
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Onyx.Attack.Reflection;
+using static Onyx.Shared.GeneralUtilities;
 
 namespace Onyx.Attack;
 
 public partial class Registry
 {
-    public static (List<WeakVariablePackage>, List<Type>) Enumerate(Type type)
+    #region Classes
+    public class Node
     {
-        var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static).ToList();
-        fields.AddRange(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic).Where(f => f.GetRawConstantValue() is not null));
-        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static).ToList();
-        properties.AddRange(type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic).Where(p => p.GetMethod != null && p.GetMethod.IsStatic));
+        public int ID { get; }
+        public string Name { get; set; }
+        public List<Edge> Edges { get; }
+        public int Time { get; }
         
-        var results = new List<WeakVariablePackage>();
-        foreach (var field in fields) results.Add(new(field.Name, field.GetRawConstantValue(), GetAccessModifier(field)));
-        foreach (var prop in properties)
+        public Node(int id, string name, int time)
         {
-            object? value = null;
-            try { value = prop.GetValue(null); }
-            catch { value = null; }
-            results.Add(new(prop.Name, value, GetAccessModifier(prop)));
+            ID = id;
+            Name = name;
+            Edges = [];
+            Time = time;
         }
+    }
+
+    public class Edge
+    {
+        public Node From { get; }
+        public Node To { get; }
+    }
+    #endregion
+    #region Node Implementations
+    public class AssemblyNode : Node
+    {
+        public Assembly Assembly { get; }
         
-        results = results.DistinctBy(r => r.Value).Where(r => r.Value != null).ToList();
-        return (results, results.Select(x => x.Type).Distinct().ToList());
+        public AssemblyNode(int id, Assembly assembly, int time, string? name = null) 
+            : base(id, name ?? assembly.FullName ?? "unknown_" + NewGUID(8, true), time)
+        {
+            Assembly = assembly;
+        }
     }
     
-    public static (List<WeakVariablePackage>, List<Type>) Enumerate(object obj)
+    public class TypeNode : Node
     {
-        var type = obj.GetType();
-        var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).ToList();
-        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(p => p.GetMethod != null).ToList();
+        public Type Type { get; }
         
-        var results = new List<WeakVariablePackage>();
-        foreach (var field in fields) results.Add(new(field.Name, field.GetValue(obj), GetAccessModifier(field)));
-        foreach (var prop in properties)
+        public TypeNode(int id, Type type, int time, string? name = null) 
+            : base(id, name ?? type.FullName ?? "unknown_" + NewGUID(8, true), time)
         {
-            object? value = null;
-            try { value = prop.GetValue(obj); }
-            catch { value = null; }
-            results.Add(new(prop.Name, value, GetAccessModifier(prop)));
+            Type = type;
         }
-        
-        results = results.DistinctBy(r => r.Value).Where(r => r.Value != null).ToList();
-        return (results, results.Select(x => x.Type).Distinct().ToList());
     }
+
+    public class InstanceNode : Node
+    {
+        public WeakReference<object> Instance { get; }
+        public Type Type { get; }
+        
+        public InstanceNode(int id, object instance, int time, string? name = null, Type? type = null) 
+            : base(id, name ?? instance.GetType().FullName ?? "unknown_" + NewGUID(8, true), time)
+        {
+            Instance = new(instance);
+            Type = type ?? instance.GetType();
+        }
+    }
+    #endregion
+    
 }
