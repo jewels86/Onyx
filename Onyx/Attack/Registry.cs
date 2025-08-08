@@ -9,15 +9,13 @@ public partial class Registry
 {
     public List<ConcurrentDictionary<int, Node>> Nodes { get; } = [];
     public ConcurrentDictionary<int, DateTime> Times { get; } = new();
-    public List<ConcurrentBag<Edge>> Edges { get; } = [];
 
-    public Registry(AppDomain? appDomain = null, Action<Node, Exception>? onError = null)
+    public Registry()
     {
-        appDomain ??= AppDomain.CurrentDomain;
-        Build(new AppDomainNode(appDomain.GetHashCode(), appDomain, 0), onError);
+        
     }
 
-    public void Build(Node top, Action<Node, Exception>? onError = null)
+    public void Build(Node top, Action<Node, Exception>? onError = null, Func<Node, bool>? filter = null)
     {
         int time = top.Time;
         HashSet<int> visited = new();
@@ -33,6 +31,7 @@ public partial class Registry
             
             foreach (var reference in refs)
             {
+                if (filter != null && !filter(reference)) continue;
                 try { Traverse(reference); }
                 catch (Exception ex) { onError?.Invoke(reference, ex); }
             }
@@ -41,6 +40,5 @@ public partial class Registry
         Traverse(top);
         Nodes.Add(map);
         Times[time] = DateTime.Now;
-        Edges.Add(new ConcurrentBag<Edge>(map.Values.SelectMany(n => n.Edges)));
     }
 }

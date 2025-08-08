@@ -2,6 +2,7 @@
 
 public static class GeneralUtilities
 {
+    #region String Handling
     public static string NewGUID(int length, bool sanitize = false)
     {
         length = Math.Max(length, 16);
@@ -49,7 +50,13 @@ public static class GeneralUtilities
 
     }
     
-    public static T TryCatch<T>(Func<T> func, Action<Exception, T>? errorHandler, T defaultValue = default!)
+    public class DynamicTypeName(string name)
+    {
+        public string Name { get; set; } = name;
+    }
+    #endregion
+    #region Utility
+    public static T TryCatch<T>(Func<T> func, Action<Exception>? errorHandler, T defaultValue = default!)
     {
         try
         {
@@ -57,13 +64,9 @@ public static class GeneralUtilities
         }
         catch (Exception ex)
         {
-            errorHandler?.Invoke(ex, defaultValue);
+            errorHandler?.Invoke(ex);
             return defaultValue;
         }
     }
-
-    public class DynamicTypeName(string name)
-    {
-        public string Name { get; set; } = name;
-    }
+    #endregion
 }

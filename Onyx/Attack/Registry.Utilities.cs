@@ -104,6 +104,15 @@ public partial class Registry
         {
             AppDomain = appDomain;
         }
+
+        public AppDomainNode(AppDomain appDomain, int time, string? name = null)
+            : base(TryGetHashCode(appDomain),
+                string.IsNullOrEmpty(name ?? appDomain.FriendlyName)
+                    ? (name ?? appDomain.FriendlyName)
+                    : string.Intern(name ?? appDomain.FriendlyName), time)
+        {
+            AppDomain = appDomain;
+        }
         
         public override string ToString() => $"(AppDomain) {Name}";
     }
@@ -115,6 +124,14 @@ public partial class Registry
 
         public AssemblyNode(int id, Assembly assembly, int time, string? name = null) 
             : base(id, string.IsNullOrEmpty(name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true)) ? (name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true)) : string.Intern(name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true)), time)
+        {
+            Reference = new(assembly);
+        }
+        public AssemblyNode(Assembly assembly, int time, string? name = null)
+            : base(TryGetHashCode(assembly),
+                string.IsNullOrEmpty(name ?? assembly.FullName)
+                    ? (name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true))
+                    : string.Intern(name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true)), time)
         {
             Reference = new(assembly);
         }
@@ -132,6 +149,14 @@ public partial class Registry
         {
             Reference = new(type);
         }
+        public TypeNode(Type type, int time, string? name = null)
+            : base(TryGetHashCode(type),
+                string.IsNullOrEmpty(name ?? type.FullName)
+                    ? (name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true))
+                    : string.Intern(name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true)), time)
+        {
+            Reference = new(type);
+        }
 
         public override string ToString() => $"(Type) {Name}";
     }
@@ -144,6 +169,16 @@ public partial class Registry
         
         public InstanceNode(int id, object instance, int time, InstanceType instanceType, string? name = null, Type? type = null) 
             : base(id, string.IsNullOrEmpty(name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)) ? (name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)) : string.Intern(name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)), time)
+        {
+            Instance = new(instance);
+            Type = type ?? instance.GetType();
+            InstanceType = instanceType;
+        }
+        public InstanceNode(object instance, int time, InstanceType instanceType, string? name = null, Type? type = null)
+            : base(TryGetHashCode(instance),
+                string.IsNullOrEmpty(name ?? instance.GetType().FullName)
+                    ? (name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true))
+                    : string.Intern(name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)), time)
         {
             Instance = new(instance);
             Type = type ?? instance.GetType();
