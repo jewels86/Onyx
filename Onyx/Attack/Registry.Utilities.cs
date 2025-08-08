@@ -350,8 +350,8 @@ public partial class Registry
     {
         if (type == null) return [];
         if (time < 0 || time >= NodesOfType.Count) return [];
-        if (!NodesOfType[time].TryGetValue(type, out var instances)) return [];
-        return instances ?? [];
+        if (!NodesOfType[time].TryGetValue(new(type), out var instances)) return [];
+        return instances;
     }
 
     public static string GetFriendlyEdgeLabel(EdgeType type)

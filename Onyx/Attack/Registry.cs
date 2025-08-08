@@ -8,7 +8,7 @@ namespace Onyx.Attack;
 public partial class Registry
 {
     public List<ConcurrentDictionary<int, Node>> Nodes { get; } = [];
-    public List<ConcurrentDictionary<Type, List<InstanceNode>>> NodesOfType { get; } = [];
+    public List<ConcurrentDictionary<WeakType, List<InstanceNode>>> NodesOfType { get; } = [];
     public ConcurrentDictionary<int, DateTime> Times { get; } = new();
 
     public Registry()
@@ -16,30 +16,31 @@ public partial class Registry
         
     }
 
-    public void Build(Node top, Action<Node, Exception>? onError = null, Func<Node, bool>? filter = null)
+    public void Build(Node top, Action<Node, Exception>? onError = null, Func<Node, bool>? filter = null, int depthLimit = -1)
     {
         int time = top.Time;
         HashSet<int> visited = new();
         ConcurrentDictionary<int, Node> map = new();
 
-        void Traverse(Node node)
+        void Traverse(Node node, int depth)
         {
             if (!visited.Add(node.Id)) return;
             map[node.Id] = node;
             if (node is InstanceNode instance && instance.Type != null) 
-                NodesOfType[time].GetOrAdd(instance.Type, _ => []).Add(instance);
+                NodesOfType[time].GetOrAdd(new(instance.Type), _ => []).Add(instance);
+
+            if (depthLimit != -1 && depth >= depthLimit) return;
 
             var refs = GetReferences(node, time);
-            
             foreach (var reference in refs)
             {
                 if (filter != null && !filter(reference)) continue;
-                try { Traverse(reference); }
+                try { Traverse(reference, depth + 1); }
                 catch (Exception ex) { onError?.Invoke(reference, ex); }
             }
         }
         
-        Traverse(top);
+        Traverse(top, 0);
         Nodes.Add(map);
         Times[time] = DateTime.Now;
     }
