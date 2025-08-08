@@ -53,6 +53,8 @@ public partial class Registry
         public bool AllowOtherAssemblies { get; set; } = true;
         public bool AssembliesApplyToTypes { get; set; } = true;
         public bool AssembliesApplyToInstances { get; set; } = false;
+        public bool AssemblyContainsAppliesToTypes { get; set; } = false;
+        public bool AssemblyContainsAppliesToInstances { get; set; } = false;
         public List<string> WhitelistedAssemblyContains { get; } = [];
         public List<string> BlacklistedAssemblyContains { get; } = [];
         
@@ -79,6 +81,8 @@ public partial class Registry
             AllowOtherAssemblies = filter.AllowOtherAssemblies;
             AssembliesApplyToTypes = filter.AssembliesApplyToTypes;
             AssembliesApplyToInstances = filter.AssembliesApplyToInstances;
+            AssemblyContainsAppliesToTypes = filter.AssemblyContainsAppliesToTypes;
+            AssemblyContainsAppliesToInstances = filter.AssemblyContainsAppliesToInstances;
             WhitelistedAssemblyContains = new(filter.WhitelistedAssemblyContains);
             BlacklistedAssemblyContains = new(filter.BlacklistedAssemblyContains);
             WhitelistedInstanceTypes = new(filter.WhitelistedInstanceTypes);
@@ -96,6 +100,8 @@ public partial class Registry
             bool allowOtherAssemblies = true,
             bool assembliesApplyToTypes = true,
             bool assembliesApplyToInstances = false,
+            bool assemblyContainsAppliesToTypes = false,
+            bool assemblyContainsAppliesToInstances = false,
             IEnumerable<string>? whitelistedAssemblyContains = null,
             IEnumerable<string>? blacklistedAssemblyContains = null,
             IEnumerable<Type>? whitelistedInstanceTypes = null,
@@ -112,6 +118,8 @@ public partial class Registry
             AllowOtherAssemblies = allowOtherAssemblies;
             AssembliesApplyToTypes = assembliesApplyToTypes;
             AssembliesApplyToInstances = assembliesApplyToInstances;
+            AssemblyContainsAppliesToTypes = assemblyContainsAppliesToTypes;
+            AssemblyContainsAppliesToInstances = assemblyContainsAppliesToInstances;
             if (whitelistedAssemblyContains != null) foreach (var s in whitelistedAssemblyContains) WhitelistedAssemblyContains.Add(s);
             if (blacklistedAssemblyContains != null) foreach (var s in blacklistedAssemblyContains) BlacklistedAssemblyContains.Add(s);
             if (whitelistedInstanceTypes != null) foreach (var t in whitelistedInstanceTypes) WhitelistedInstanceTypes.Add(new(t));
@@ -169,9 +177,25 @@ public partial class Registry
                 foreach (var asm in BlacklistedAssemblies)
                     predicates.Add(n => !(n is InstanceNode inst && inst.Type?.Assembly == asm.Value));
             }
+            if (AssemblyContainsAppliesToTypes)
+            {
+                foreach (var contains in WhitelistedAssemblyContains)
+                    passes.Add(n => n is TypeNode tn && tn.Type?.AssemblyQualifiedName != null && tn.Type.AssemblyQualifiedName.Contains(contains));
+                foreach (var contains in BlacklistedAssemblyContains)
+                    predicates.Add(n => !(n is TypeNode tn && tn.Type?.AssemblyQualifiedName != null && tn.Type.AssemblyQualifiedName.Contains(contains)));
+            }
+            if (AssemblyContainsAppliesToInstances)
+            {
+                foreach (var contains in WhitelistedAssemblyContains)
+                    passes.Add(n => n is InstanceNode inst && inst.Type?.AssemblyQualifiedName != null && inst.Type.AssemblyQualifiedName.Contains(contains));
+                foreach (var contains in BlacklistedAssemblyContains)
+                    predicates.Add(n => !(n is InstanceNode inst && inst.Type?.AssemblyQualifiedName != null && inst.Type.AssemblyQualifiedName.Contains(contains)));
+            }
+            foreach (var contains in WhitelistedAssemblyContains)
+                passes.Add(n => n is AssemblyNode asmn && asmn.Assembly?.FullName != null && asmn.Assembly.FullName.Contains(contains));
+            foreach (var contains in BlacklistedAssemblyContains)
+                predicates.Add(n => !(n is AssemblyNode asmn && asmn.Assembly?.FullName != null && asmn.Assembly.FullName.Contains(contains)));
             
-            foreach 
-
             foreach (var type in WhitelistedInstanceTypes)
                 passes.Add(n => n is InstanceNode inst && inst.Type == type.Value);
             foreach (var type in BlacklistedInstanceTypes)
@@ -230,6 +254,18 @@ public partial class Registry
             return this;
         }
 
+        public Filter WithAssemblyContainsAppliesToTypes(bool value = false)
+        {
+            AssemblyContainsAppliesToTypes = value;
+            return this;
+        }
+
+        public Filter WithAssemblyContainsAppliesToInstances(bool value = false)
+        {
+            AssemblyContainsAppliesToInstances = value;
+            return this;
+        }
+
         public Filter WithInstanceType(Type type, bool allow = true)
         {
             if (allow) WhitelistedInstanceTypes.Add(new(type));
@@ -240,6 +276,18 @@ public partial class Registry
         public Filter WithAllowOtherInstanceTypes(bool value = true)
         {
             AllowOtherInstanceTypes = value;
+            return this;
+        }
+
+        public Filter WithWhitelistedAssemblyContains(params string[] values)
+        {
+            foreach (var v in values) WhitelistedAssemblyContains.Add(v);
+            return this;
+        }
+
+        public Filter WithBlacklistedAssemblyContains(params string[] values)
+        {
+            foreach (var v in values) BlacklistedAssemblyContains.Add(v);
             return this;
         }
         #endregion

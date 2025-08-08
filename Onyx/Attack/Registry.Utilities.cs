@@ -120,13 +120,13 @@ public partial class Registry
     
     public class AssemblyNode : Node
     {
-        public WeakReference<Assembly> Reference { get; }
-        public Assembly? Assembly => Reference.TryGetTarget(out var asm) ? asm : null;
+        public WeakAssembly Reference { get; }
+        public Assembly? Assembly => Reference.Value;
 
         public AssemblyNode(int id, Assembly assembly, int time, string? name = null) 
             : base(id, string.IsNullOrEmpty(name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true)) ? (name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true)) : string.Intern(name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true)), time)
         {
-            Reference = new(assembly);
+            Reference = new WeakAssembly(assembly);
         }
         public AssemblyNode(Assembly assembly, int time, string? name = null)
             : base(TryGetHashCode(assembly),
@@ -134,7 +134,7 @@ public partial class Registry
                     ? (name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true))
                     : string.Intern(name ?? assembly.FullName ?? "unknown_asm_" + NewGUID(8, true)), time)
         {
-            Reference = new(assembly);
+            Reference = new WeakAssembly(assembly);
         }
 
         public override string ToString() => $"(Assembly) {Name}";
@@ -142,13 +142,13 @@ public partial class Registry
     
     public class TypeNode : Node
     {
-        public WeakReference<Type> Reference { get; }
-        public Type? Type => Reference.TryGetTarget(out var type) ? type : null;
+        public WeakType Reference { get; }
+        public Type? Type => Reference.Value;
 
         public TypeNode(int id, Type type, int time, string? name = null) 
             : base(id, string.IsNullOrEmpty(name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true)) ? (name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true)) : string.Intern(name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true)), time)
         {
-            Reference = new(type);
+            Reference = new WeakType(type);
         }
         public TypeNode(Type type, int time, string? name = null)
             : base(TryGetHashCode(type),
@@ -156,7 +156,7 @@ public partial class Registry
                     ? (name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true))
                     : string.Intern(name ?? type.FullName ?? "unknown_type_" + NewGUID(8, true)), time)
         {
-            Reference = new(type);
+            Reference = new WeakType(type);
         }
 
         public override string ToString() => $"(Type) {Name}";
@@ -164,14 +164,15 @@ public partial class Registry
 
     public class InstanceNode : Node
     {
-        public WeakReference<object> Instance { get; }
-        public Type? Type => Instance.TryGetTarget(out var inst) ? inst.GetType() : null;
+        public WeakReference<object> Reference { get; }
+        public object? Instance => Reference.TryGetTarget(out var inst) ? inst : null;
+        public Type? Type => Instance?.GetType();
         public InstanceType InstanceType { get; set; }
         
         public InstanceNode(int id, object instance, int time, InstanceType instanceType, string? name = null, Type? type = null) 
             : base(id, string.IsNullOrEmpty(name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)) ? (name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)) : string.Intern(name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)), time)
         {
-            Instance = new(instance);
+            Reference = new(instance);
             InstanceType = instanceType;
         }
         public InstanceNode(object instance, int time, InstanceType instanceType, string? name = null, Type? type = null)
@@ -180,21 +181,22 @@ public partial class Registry
                     ? (name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true))
                     : string.Intern(name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)), time)
         {
-            Instance = new(instance);
+            Reference = new(instance);
             InstanceType = instanceType;
         }
         
-        public override string ToString() => $"(Instance) {InstanceTypeToLabel(InstanceType)} {Name} : {Type.FullName}";
+        public override string ToString() => $"(Instance) {InstanceTypeToLabel(InstanceType)} {Name} : {Type?.FullName}";
     }
     #endregion
     #region References
-    public static List<Assembly> GetReferences(AppDomain appDomain)
+    public static List<Assembly> GetReferences(AppDomain? appDomain)
     {
-        return appDomain.GetAssemblies().ToList();
+        return appDomain?.GetAssemblies().ToList() ?? [];
     }
     
-    public static List<Type> GetReferences(Assembly asm)
+    public static List<Type> GetReferences(Assembly? asm)
     {
+        if (asm is null) return [];
         Type[] types;
         try { types = asm.GetTypes(); } 
         catch (ReflectionTypeLoadException ex) { types = ex.Types.Where(t => t != null).ToArray()!; }
@@ -202,8 +204,9 @@ public partial class Registry
         return types.ToList();
     }
 
-    public static List<InstanceWeakVariablePackage> GetReferences(Type type)
+    public static List<InstanceWeakVariablePackage> GetReferences(Type? type)
     {
+        if (type is null) return [];
         List<InstanceWeakVariablePackage> instances = GetAllFields(type)
             .Select(x => ((IVariablePackage)x, InstanceType.Field))
             .Concat(GetAllProperties(type).Select(x => ((IVariablePackage)x, InstanceType.Property)))
@@ -212,8 +215,9 @@ public partial class Registry
         return instances;
     }
 
-    public static List<WeakVariablePackage> GetReferences(object instance)
+    public static List<WeakVariablePackage> GetReferences(object? instance)
     {
+        if (instance is null) return [];
         List<InstanceWeakVariablePackage> packages = WithInstanceType(Reflection.GetAllFields(instance), InstanceType.Field)
             .Concat(WithInstanceType(Reflection.GetAllProperties(instance), InstanceType.Property))
             .Select(x => 
@@ -255,8 +259,8 @@ public partial class Registry
         } 
         if (node is InstanceNode instanceNode)
         {
-            if (!instanceNode.Instance.TryGetTarget(out var inst)) return [];
-            return GetReferences(inst)
+            if (instanceNode.Instance is null) return [];
+            return GetReferences(instanceNode.Instance)
                 .Where(x => x.Value != null)
                 .Select(x =>
                 {
