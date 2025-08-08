@@ -8,6 +8,7 @@ namespace Onyx.Attack;
 public partial class Registry
 {
     public List<ConcurrentDictionary<int, Node>> Nodes { get; } = [];
+    public List<ConcurrentDictionary<Type, List<InstanceNode>>> NodesOfType { get; } = [];
     public ConcurrentDictionary<int, DateTime> Times { get; } = new();
 
     public Registry()
@@ -24,8 +25,9 @@ public partial class Registry
         void Traverse(Node node)
         {
             if (!visited.Add(node.Id)) return;
-            
             map[node.Id] = node;
+            if (node is InstanceNode instance && instance.Type != null) 
+                NodesOfType[time].GetOrAdd(instance.Type, _ => []).Add(instance);
 
             var refs = GetReferences(node, time);
             

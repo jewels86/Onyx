@@ -97,12 +97,13 @@ public partial class Registry
     #region Node Implementations
     public class AppDomainNode : Node
     {
-        public AppDomain AppDomain { get; }
+        public WeakReference<AppDomain> Reference { get; }
+        public AppDomain? AppDomain => Reference.TryGetTarget(out var appDomain) ? appDomain : null;
         
         public AppDomainNode(int id, AppDomain appDomain, int time, string? name = null) 
             : base(id, string.IsNullOrEmpty(name ?? appDomain.FriendlyName) ? (name ?? appDomain.FriendlyName) : string.Intern(name ?? appDomain.FriendlyName), time)
         {
-            AppDomain = appDomain;
+            Reference = new(appDomain);
         }
 
         public AppDomainNode(AppDomain appDomain, int time, string? name = null)
@@ -111,7 +112,7 @@ public partial class Registry
                     ? (name ?? appDomain.FriendlyName)
                     : string.Intern(name ?? appDomain.FriendlyName), time)
         {
-            AppDomain = appDomain;
+            Reference = new(appDomain);
         }
         
         public override string ToString() => $"(AppDomain) {Name}";
@@ -164,14 +165,13 @@ public partial class Registry
     public class InstanceNode : Node
     {
         public WeakReference<object> Instance { get; }
-        public Type Type { get; }
+        public Type? Type => Instance.TryGetTarget(out var inst) ? inst.GetType() : null;
         public InstanceType InstanceType { get; set; }
         
         public InstanceNode(int id, object instance, int time, InstanceType instanceType, string? name = null, Type? type = null) 
             : base(id, string.IsNullOrEmpty(name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)) ? (name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)) : string.Intern(name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)), time)
         {
             Instance = new(instance);
-            Type = type ?? instance.GetType();
             InstanceType = instanceType;
         }
         public InstanceNode(object instance, int time, InstanceType instanceType, string? name = null, Type? type = null)
@@ -181,7 +181,6 @@ public partial class Registry
                     : string.Intern(name ?? instance.GetType().FullName ?? "unknown_instance_" + NewGUID(8, true)), time)
         {
             Instance = new(instance);
-            Type = type ?? instance.GetType();
             InstanceType = instanceType;
         }
         
@@ -343,9 +342,16 @@ public partial class Registry
         catch { return -1; }
     }
 
-    public Node? Get(object obj, int time)
+    public Node? Get(object? obj, int time)
     {
         return GeneralUtilities.TryCatch(() => Nodes[time][TryGetHashCode(obj)], null, null);
+    }
+    public List<InstanceNode> GetInstancesOfType(Type? type, int time)
+    {
+        if (type == null) return [];
+        if (time < 0 || time >= NodesOfType.Count) return [];
+        if (!NodesOfType[time].TryGetValue(type, out var instances)) return [];
+        return instances ?? [];
     }
 
     public static string GetFriendlyEdgeLabel(EdgeType type)

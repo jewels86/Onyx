@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using Onyx.Shared;
 
 namespace Onyx.Attack;
 
@@ -232,6 +233,28 @@ public static partial class Reflection
             return new VariablePackage("unknown", null, AccessModifier.None, ReflectionResult.Failure);
         }
         
+    }
+    #endregion
+    #region Assembly Handling
+    public static List<Assembly> GetLoadedAssemblies()
+    {
+        return AppDomain.CurrentDomain.GetAssemblies().ToList();
+    }
+
+    public static Type? SearchForType(string name, IEnumerable<Assembly> assemblies)
+    {
+        foreach (var assembly in assemblies)
+        {
+            Type? result = GeneralUtilities.TryCatch(() => assembly.GetType(name), null, defaultValue: null);
+            if (result != null)
+                return result;
+        }
+
+        return null;
+    }
+    public static Type? SearchForType(string name)
+    {
+        return SearchForType(name, GetLoadedAssemblies());
     }
     #endregion
 
