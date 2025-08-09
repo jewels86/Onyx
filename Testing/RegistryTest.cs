@@ -12,7 +12,8 @@ public static class RegistryTest
         registry.Build(top, filter: new Registry.Filter()
             .WithAssembly(Assembly.GetExecutingAssembly())
             .WithAllowOtherAssemblies(false)
-            
+            .WithAssembliesApplyToTypes(true)
+            .WithAssembliesApplyToInstances(true)
             .WithFinish(), depthLimit: 10);
         registry.PrintGraph(top);
     }
