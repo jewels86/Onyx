@@ -290,6 +290,23 @@ public partial class Registry
             foreach (var v in values) BlacklistedAssemblyContains.Add(v);
             return this;
         }
+
+        public Filter WithPredicate(Func<Node, bool> predicate)
+        {
+            Predicates.Add(predicate);
+            return this;
+        }
+        public Filter WithPass(Func<Node, bool> pass)
+        {
+            Passes.Add(pass);
+            return this;
+        }
+
+        public Filter WithFinish()
+        {
+            Finish();
+            return this;
+        }
         #endregion
     }
     

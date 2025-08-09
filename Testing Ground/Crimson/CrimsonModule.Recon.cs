@@ -19,9 +19,16 @@ public partial class CrimsonModule
         var builderType = Reflection.SearchForType("Microsoft.AspNetCore.Builder.WebApplicationBuilder");
         var appType = Reflection.SearchForType("Microsoft.AspNetCore.Builder.WebApplication");
         var builderNode = registry.GetInstancesOfType(builderType, 0).FirstOrDefault();
-        var appNode = registry.GetInstancesOfType(appType, 0).FirstOrDefault()
+        var appNode = registry.GetInstancesOfType(appType, 0).FirstOrDefault();
         
         // Now we can use this to get some nice information
         
+    }
+    
+    public class ReconResult 
+    {
+        public dynamic Builder { get; set; }
+        public dynamic App { get; set; }
+        public Registry Registry {get;set;}
     }
 }
