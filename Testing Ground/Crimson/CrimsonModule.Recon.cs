@@ -4,7 +4,7 @@ namespace Crimson;
 
 public partial class CrimsonModule
 {
-    public static void Recon()
+    public static ReconResult Recon()
     {
         // First, let's get a Registry started
         // We'll start with the whole AppDomain but we can filter out what we don't want
@@ -22,13 +22,20 @@ public partial class CrimsonModule
         var appNode = registry.GetInstancesOfType(appType, 0).FirstOrDefault();
         
         // Now we can use this to get some nice information
-        
+        return new ReconResult(builderNode?.Instance, appNode?.Instance, registry);
     }
     
     public class ReconResult 
     {
-        public dynamic Builder { get; set; }
-        public dynamic App { get; set; }
-        public Registry Registry {get;set;}
+        public dynamic? Builder { get; set; }
+        public dynamic? App { get; set; }
+        public Registry Registry { get; set; }
+        
+        public ReconResult(dynamic? builder, dynamic? app, Registry registry) 
+        {
+            Builder = builder;
+            App = app;
+            Registry = registry;
+        }
     }
 }
