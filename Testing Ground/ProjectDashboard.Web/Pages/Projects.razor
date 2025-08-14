@@ -1,0 +1,62 @@
+@page "/projects"
+@attribute [Authorize]
+@inject ProjectService Projects
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
+
+<h2>Projects</h2>
+
+<div class="card">
+    <h3>Create Project</h3>
+    <EditForm Model="@newProject" OnValidSubmit="@Create">
+        <div class="row">
+            <InputText @bind-Value="newProject.Name" placeholder="Name" />
+            <InputText @bind-Value="newProject.Description" placeholder="Description" />
+            <button type="submit">Create</button>
+        </div>
+    </EditForm>
+</div>
+
+@if (items is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="grid">
+        @foreach (var p in items)
+        {
+            <div class="card">
+                <h3>@p.Name</h3>
+                <p>@p.Description</p>
+                <p>Status: <b>@p.Status</b></p>
+                <ProjectTasks ProjectId="@p.Id" />
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<ProjectDashboard.Web.Models.Project>? items;
+    private NewProject newProject = new();
+
+    class NewProject
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await Projects.GetProjectsAsync();
+    }
+
+    private async Task Create()
+    {
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userName = auth.User?.Identity?.Name ?? "unknown";
+        var p = await Projects.CreateAsync(newProject.Name, userName, newProject.Description);
+        items?.Insert(0, p);
+        newProject = new();
+        StateHasChanged();
+    }
+}
