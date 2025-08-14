@@ -16,6 +16,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testing", "Testing\Testing.csproj", "{B8A9A5EA-50A9-4749-A53E-AC392ACEE393}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing Ground", "Testing Ground", "{641BD20A-30DD-485D-B782-67F4207492F1}"
+	ProjectSection(SolutionItems) = preProject
+		Testing Ground\Guide.md = Testing Ground\Guide.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectDashboard.Abstractions", "Testing Ground\ProjectDashboard.Abstractions\ProjectDashboard.Abstractions.csproj", "{03012449-C7C7-400C-8396-08EC7D65DD30}"
 EndProject
