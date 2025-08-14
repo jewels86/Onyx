@@ -1,0 +1,24 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Http
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject IHttpContextAccessor HttpContextAccessor
+
+@if (HttpContextAccessor.HttpContext.User.Identity.IsAuthenticated)
+{
+    <text>
+        Hello, @HttpContextAccessor.HttpContext.User.Identity.Name!
+        <a href="/Identity/Account/Manage">Manage</a>
+        <form method="post" action="/Identity/Account/Logout">
+            <button type="submit" class="link-button">Logout</button>
+        </form>
+    </text>
+}
+else
+{
+    <text>
+        <a href="/Identity/Account/Register">Register</a>
+        <a href="/Identity/Account/Login">Login</a>
+    </text>
+}
+
