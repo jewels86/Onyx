@@ -1,29 +1,31 @@
 @page "/projects"
-@attribute [Authorize]
-@inject ProjectService Projects
-@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
+@using ProjectDashboard.Web.Services
+@using ProjectDashboard.Web.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ProjectService ProjectService
+@inject AuthenticationStateProvider AuthStateProvider
 
 <h2>Projects</h2>
 
 <div class="card">
     <h3>Create Project</h3>
-    <EditForm Model="@newProject" OnValidSubmit="@Create">
+    <EditForm Model="@_newProject" OnValidSubmit="@Create">
         <div class="row">
-            <InputText @bind-Value="newProject.Name" placeholder="Name" />
-            <InputText @bind-Value="newProject.Description" placeholder="Description" />
+            <InputText @bind-Value="_newProject.Name" placeholder="Name" />
+            <InputText @bind-Value="_newProject.Description" placeholder="Description" />
             <button type="submit">Create</button>
         </div>
     </EditForm>
 </div>
 
-@if (items is null)
+@if (_items is null)
 {
     <p>Loading...</p>
 }
 else
 {
     <div class="grid">
-        @foreach (var p in items)
+        @foreach (var p in _items)
         {
             <div class="card">
                 <h3>@p.Name</h3>
@@ -36,8 +38,8 @@ else
 }
 
 @code {
-    private List<ProjectDashboard.Web.Models.Project>? items;
-    private NewProject newProject = new();
+    private List<Project>? _items;
+    private NewProject _newProject = new();
 
     class NewProject
     {
@@ -47,16 +49,16 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        items = await Projects.GetProjectsAsync();
+        _items = await ProjectService.GetProjectsAsync();
     }
 
     private async Task Create()
     {
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
         var userName = auth.User?.Identity?.Name ?? "unknown";
-        var p = await Projects.CreateAsync(newProject.Name, userName, newProject.Description);
-        items?.Insert(0, p);
-        newProject = new();
+        var p = await ProjectService.CreateAsync(_newProject.Name, userName, _newProject.Description);
+        _items?.Insert(0, p);
+        _newProject = new();
         StateHasChanged();
     }
 }

@@ -78,12 +78,6 @@ else
         };
 
         var result = await plugin.ExecuteAsync(ctxWithLog);
-        output = $"Plugin: {plugin.Name}
-Success: {result.Success}
-Output:
-{result.Output}
-
-Log:
-" + string.Join("\n", logLines);
+        output = $"Plugin: {plugin.Name}\nSuccess: {result.Success}\nOutput:\n{result.Output}\n\nLog:\n{string.Join("\n", logLines)}";
     }
 }
