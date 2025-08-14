@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectDashboard.Web", "Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamplePlugin.HelloWorld", "Testing Ground\SamplePlugin.HelloWorld\SamplePlugin.HelloWorld.csproj", "{319E8922-8334-4871-8ED3-0F049036D782}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crimson", "Testing Ground\Crimson\Crimson.csproj", "{13C41670-8460-42F3-B973-51991F2D46FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,10 +57,15 @@ Global
 		{319E8922-8334-4871-8ED3-0F049036D782}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{319E8922-8334-4871-8ED3-0F049036D782}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{319E8922-8334-4871-8ED3-0F049036D782}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13C41670-8460-42F3-B973-51991F2D46FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13C41670-8460-42F3-B973-51991F2D46FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13C41670-8460-42F3-B973-51991F2D46FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13C41670-8460-42F3-B973-51991F2D46FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{03012449-C7C7-400C-8396-08EC7D65DD30} = {641BD20A-30DD-485D-B782-67F4207492F1}
 		{5061F05E-0875-4452-BBD7-344C2BD2795C} = {641BD20A-30DD-485D-B782-67F4207492F1}
 		{319E8922-8334-4871-8ED3-0F049036D782} = {641BD20A-30DD-485D-B782-67F4207492F1}
+		{13C41670-8460-42F3-B973-51991F2D46FC} = {641BD20A-30DD-485D-B782-67F4207492F1}
 	EndGlobalSection
 EndGlobal

@@ -204,10 +204,28 @@ public static partial class Reflection
     
     public struct InspectionResult
     {
-        public Type Type { get; set; }
-        public List<FieldPackage> Fields { get; set; }
-        public List<PropertyPackage> Properties { get; set; }
-        public List<MethodPackage> Methods { get; set; }
+        public Type Type { get; init; }
+        public List<FieldPackage> Fields { get; init; }
+        public List<PropertyPackage> Properties { get; init; }
+        public List<MethodPackage> Methods { get; init; }
+
+        public string ToFormattedString(Func<IVariablePackage, string>? extra = null)
+        {
+            if (extra == null)
+                extra = _ => string.Empty;
+            return $"Object is of type: {Type.FullName}\n" +
+                   $"Fields: {Fields.Count}\n" +
+                   string.Join("\n", Fields.Select(f => $"  - {f.Name} ({f.Type.Name}) [{f.Access}] {extra(f)}")) + "\n" +
+                   $"Properties: {Properties.Count}\n" +
+                   string.Join("\n", Properties.Select(p => $"  - {p.Name} ({p.Type.Name}) [{p.Access}] {extra(p)}")) + "\n" +
+                   $"Methods: {Methods.Count}\n" +
+                   string.Join("\n", Methods.Select(m => $"  - {m.Name} ({m.ReturnType.Name}) [{m.Access}]"));
+        }
+
+        public override string ToString()
+        {
+            return ToFormattedString();
+        }
     }
     
     public static MethodAttributes AccessModifierToMethodAttributes(this AccessModifier access)

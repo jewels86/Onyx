@@ -8,7 +8,6 @@ using ProjectDashboard.Web.Services;
 using ProjectDashboard.Web.Services.Plugins;
 
 var builder = WebApplication.CreateBuilder(args);
-
 // Db + Identity
 builder.Services.AddDbContext<ApplicationDbContext>(opts =>
     opts.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));

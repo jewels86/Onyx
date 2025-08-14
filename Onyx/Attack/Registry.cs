@@ -16,7 +16,7 @@ public partial class Registry
         
     }
 
-    public void Build(Node top, Action<Node, Exception>? onError = null, Func<Node, bool>? filter = null, int depthLimit = -1)
+    public void Build(Node top, Func<Node, bool>? filter = null, Action<Node, Exception>? onError = null, int depthLimit = -1)
     {
         int time = top.Time;
         HashSet<int> visited = new();
