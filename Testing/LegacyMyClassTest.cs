@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using System.Reflection.Emit;
-using Onyx.Defense;
 using Onyx.Attack;
 using Onyx.Shared;
 

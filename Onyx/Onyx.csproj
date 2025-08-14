@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Authors>Jewels</Authors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,5 +14,15 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.14.0" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Defense\" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+  </PropertyGroup>
 
 </Project>
