@@ -7,9 +7,9 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
-using static Onyx.Shared.Hashing;
+using static Onyx.Shared.Cryptography.Hashing;
 
-namespace Onyx.Shared;
+namespace Onyx.Shared.Cryptography;
 
 public static class ECC
 {

@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		DESIGN.md = DESIGN.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Onyx", "Onyx\Onyx.csproj", "{C1A4E5D9-F803-4E2A-8B04-8662024BB6C2}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testing", "Testing\Testing.csproj", "{B8A9A5EA-50A9-4749-A53E-AC392ACEE393}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing Ground", "Testing Ground", "{641BD20A-30DD-485D-B782-67F4207492F1}"
@@ -28,6 +26,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamplePlugin.HelloWorld", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crimson", "Testing Ground\Crimson\Crimson.csproj", "{13C41670-8460-42F3-B973-51991F2D46FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Onyx.Attack", "Onyx.Attack\Onyx.Attack.csproj", "{FF658148-FC3C-445B-9540-071C533FD27F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Onyx.Shared", "Onyx.Shared\Onyx.Shared.csproj", "{BAD68D09-537D-46E9-B08E-A3F5A653CEB7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Onyx.Defense", "Onyx.Defense\Onyx.Defense.csproj", "{F82D7B79-EC7B-435C-8B4B-C3688D63CAEF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,10 +41,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C1A4E5D9-F803-4E2A-8B04-8662024BB6C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C1A4E5D9-F803-4E2A-8B04-8662024BB6C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C1A4E5D9-F803-4E2A-8B04-8662024BB6C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C1A4E5D9-F803-4E2A-8B04-8662024BB6C2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B8A9A5EA-50A9-4749-A53E-AC392ACEE393}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B8A9A5EA-50A9-4749-A53E-AC392ACEE393}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8A9A5EA-50A9-4749-A53E-AC392ACEE393}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -61,6 +61,18 @@ Global
 		{13C41670-8460-42F3-B973-51991F2D46FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13C41670-8460-42F3-B973-51991F2D46FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13C41670-8460-42F3-B973-51991F2D46FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF658148-FC3C-445B-9540-071C533FD27F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF658148-FC3C-445B-9540-071C533FD27F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF658148-FC3C-445B-9540-071C533FD27F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF658148-FC3C-445B-9540-071C533FD27F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAD68D09-537D-46E9-B08E-A3F5A653CEB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAD68D09-537D-46E9-B08E-A3F5A653CEB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAD68D09-537D-46E9-B08E-A3F5A653CEB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAD68D09-537D-46E9-B08E-A3F5A653CEB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F82D7B79-EC7B-435C-8B4B-C3688D63CAEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F82D7B79-EC7B-435C-8B4B-C3688D63CAEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F82D7B79-EC7B-435C-8B4B-C3688D63CAEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F82D7B79-EC7B-435C-8B4B-C3688D63CAEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{03012449-C7C7-400C-8396-08EC7D65DD30} = {641BD20A-30DD-485D-B782-67F4207492F1}

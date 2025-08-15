@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text;
 
-namespace Onyx.Attack;
+namespace Onyx.Shared;
 
 public partial class DynamicTypeBuilder
 {

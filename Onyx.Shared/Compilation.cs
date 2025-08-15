@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting;
 using Onyx.Shared;
-using static Onyx.Attack.Reflection;
+using static Onyx.Shared.Reflection;
 using static Onyx.Shared.GeneralUtilities;
 
-namespace Onyx.Attack;
+namespace Onyx.Shared;
 
 public static partial class Compilation
 {

@@ -3,7 +3,7 @@ using System.Reflection.Emit;
 using System.Runtime.ConstrainedExecution;
 using static Onyx.Shared.GeneralUtilities;
 
-namespace Onyx.Attack;
+namespace Onyx.Shared;
 
 public static partial class LegacyClassBuilder
 {

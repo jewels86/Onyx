@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Reflection.Emit;
 
-namespace Onyx.Attack;
+namespace Onyx.Shared;
 
 public enum OperatorType
 {

@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Version>0.0.0</Version>
+        <Authors>Jewels</Authors>
+        <PackageProjectUrl>https://github.com/jewels86/Onyx</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/jewels86/Onyx/blob/main/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/jewels86/Onyx.git</RepositoryUrl>
+        <RepositoryType>Git</RepositoryType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Onyx.Shared\Onyx.Shared.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -4,7 +4,7 @@ using System.Runtime.Loader;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
-namespace Onyx.Attack;
+namespace Onyx.Shared;
 
 public static partial class Compilation
 {

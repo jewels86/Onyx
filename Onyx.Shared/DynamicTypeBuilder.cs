@@ -4,7 +4,7 @@ using System.Text;
 using static Onyx.Shared.GeneralUtilities;
 using MethodDefinition = Mono.Cecil.MethodDefinition;
 
-namespace Onyx.Attack;
+namespace Onyx.Shared;
 
 public partial class DynamicTypeBuilder
 {

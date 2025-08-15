@@ -8,7 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Onyx\Onyx.csproj" />
+      <ProjectReference Include="..\Onyx.Attack\Onyx.Attack.csproj" />
+      <ProjectReference Include="..\Onyx.Defense\Onyx.Defense.csproj" />
+      <ProjectReference Include="..\Onyx.Shared\Onyx.Shared.csproj" />
     </ItemGroup>
 
 </Project>

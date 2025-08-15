@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Version>0.0.0</Version>
+        <Authors>Jewels</Authors>
+        <PackageProjectUrl>https://github.com/jewels86/Onyx</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/jewels86/Onyx/blob/main/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/jewels86/Onyx.git</RepositoryUrl>
+        <RepositoryType>Git</RepositoryType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0-beta.98" />
+      <PackageReference Include="HarmonyX" Version="2.14.0" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.14.0" />
+      <PackageReference Include="Mono.Cecil" Version="0.11.6" />
+    </ItemGroup>
+
+</Project>

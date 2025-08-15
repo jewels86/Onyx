@@ -2,7 +2,7 @@
 using System.Reflection;
 using Onyx.Shared;
 
-namespace Onyx.Attack;
+namespace Onyx.Shared;
 
 public static partial class Reflection
 {

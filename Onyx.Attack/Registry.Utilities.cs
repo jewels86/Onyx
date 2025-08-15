@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Onyx.Shared;
-using static Onyx.Attack.Reflection;
+using static Onyx.Shared.Reflection;
 using static Onyx.Shared.GeneralUtilities;
 
 namespace Onyx.Attack;

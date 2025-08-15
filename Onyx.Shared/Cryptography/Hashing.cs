@@ -1,6 +1,6 @@
 ﻿using Org.BouncyCastle.Crypto.Digests;
 
-namespace Onyx.Shared;
+namespace Onyx.Shared.Cryptography;
 
 public static class Hashing
 {

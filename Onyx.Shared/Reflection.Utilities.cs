@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Onyx.Attack;
+namespace Onyx.Shared;
 
 public static partial class Reflection
 {

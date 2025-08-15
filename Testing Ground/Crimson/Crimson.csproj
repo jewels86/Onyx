@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Onyx\Onyx.csproj" />
+      <ProjectReference Include="..\..\Onyx.Attack\Onyx.Attack.csproj" />
       <ProjectReference Include="..\ProjectDashboard.Abstractions\ProjectDashboard.Abstractions.csproj" />
     </ItemGroup>
 

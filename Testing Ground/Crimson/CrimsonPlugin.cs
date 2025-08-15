@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using ProjectDashboard.Abstractions;
 using Onyx.Attack;
 using System.Text;
+using Onyx.Shared;
 
 
 public class CrimsonPlugin : IPlugin

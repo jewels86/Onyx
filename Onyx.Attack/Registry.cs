@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using Onyx.Shared;
-using static Onyx.Attack.Reflection;
+using static Onyx.Shared.Reflection;
 
 namespace Onyx.Attack;
 

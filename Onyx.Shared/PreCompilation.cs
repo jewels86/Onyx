@@ -1,6 +1,6 @@
 using Mono.Cecil;
 
-namespace Onyx.Attack;
+namespace Onyx.Shared;
 
 public static class PreCompilation
 {

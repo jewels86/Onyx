@@ -4,7 +4,7 @@ using Mono.Cecil;
 using HarmonyLib;
 using Onyx.Shared;
 
-namespace Onyx.Attack;
+namespace Onyx.Shared;
 
 public static class PostCompilation
 {
