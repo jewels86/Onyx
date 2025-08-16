@@ -134,6 +134,29 @@ public static class PostCompilation
 
         return obfuscatedNames;
     }
+    
+    public static Dictionary<string, string> ObfuscateAll(AssemblyDefinition asm,
+        Func<string, string>? obfuscateName = null)
+    {
+        if (obfuscateName == null)
+            obfuscateName = name => GeneralUtilities.NewGUID(16, true);
+        
+        var allTypes = asm.MainModule.Types.ToList();
+        var allMembers = asm.MainModule.Types.SelectMany(t => t.Methods.Cast<IMemberDefinition>())
+            .Concat(asm.MainModule.Types.SelectMany(t => t.Fields.Cast<IMemberDefinition>()))
+            .Concat(asm.MainModule.Types.SelectMany(t => t.Properties.Cast<IMemberDefinition>()))
+            .Concat(asm.MainModule.Types.SelectMany(t => t.Events.Cast<IMemberDefinition>())).ToList();
+
+        var obfuscatedNames = Obfuscate(allTypes.Cast<IMemberDefinition>().Concat(allMembers).ToList(), obfuscateName);
+        
+        foreach (var type in allTypes)
+        {
+            asm.MainModule.Types.Remove(type);
+            asm.MainModule.Types.Add(ImportType(type, asm.MainModule));
+        }
+
+        return obfuscatedNames;
+    }
 
     public static string MemberDefinitionPrefix(IMemberDefinition def)
     {
