@@ -10,6 +10,9 @@
         <PackageLicenseUrl>https://github.com/jewels86/Onyx/blob/main/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/jewels86/Onyx.git</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Title>Onyx.Shared</Title>
+        <Description>Shared files for Onyx.Attack and Onyx.Defense; general utilities.</Description>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,5 +22,16 @@
       <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.14.0" />
       <PackageReference Include="Mono.Cecil" Version="0.11.6" />
     </ItemGroup>
+
+    <PropertyGroup>
+        <LocalNuGetFeed>$(SolutionDir)packages</LocalNuGetFeed>
+    </PropertyGroup>
+
+    <Target Name="CopyToLocalFeed" AfterTargets="Pack">
+        <Message Text="Copying package to local feed..." Importance="High" />
+        <Copy
+                SourceFiles="$(PackageOutputPath)$(PackageId).$(Version).nupkg"
+                DestinationFolder="$(LocalNuGetFeed)" />
+    </Target>
 
 </Project>

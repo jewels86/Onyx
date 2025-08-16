@@ -8,10 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Onyx.Attack\Onyx.Attack.csproj">
-            <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-        </ProjectReference>
       <ProjectReference Include="..\ProjectDashboard.Abstractions\ProjectDashboard.Abstractions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Onyx.Attack" Version="0.1.0" />
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="Build">

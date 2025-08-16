@@ -1,7 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <UsingTask TaskName="Onyx.Attack.OnyxPostCompileTask" AssemblyFile="$(MSBuildThisFileDirectory)..\lib\net9.0\Onyx.Attack.dll" />
-
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -16,31 +14,39 @@
         <Title>Onyx.Attack</Title>
         <Description>A C# toolkit for exploiting untrusted code exploitation.</Description>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <IsPackable>true</IsPackable>
+        <PackAsTool>false</PackAsTool>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Onyx.Shared\Onyx.Shared.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
+        <PackageReference Include="Fody" Version="6.9.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Build" Version="17.14.8" />
         <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.8" />
+        <PackageReference Include="Onyx.Shared" Version="0.0.1" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(OnyxPostCompilation)' == 'true'">
+        
     </ItemGroup>
 
     <PropertyGroup>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <LocalNuGetFeed>$(SolutionDir)packages</LocalNuGetFeed>
     </PropertyGroup>
 
-    <ItemGroup Condition="'$(OnyxPostCompilation)' == 'true'">
-        <PackageReference Include="Fody" Version="6.6.0" PrivateAssets="all" />
-        <PackageReference Include="Costura.Fody" Version="6.0.0" PrivateAssets="all" />
-    </ItemGroup>
-
-    <Import Project="packages\Fody\build\Fody.targets" Condition="'$(OnyxPostCompilation)' == 'true'" />
-
-    <Target Name="OnyxPostBuild" AfterTargets="FodyTarget" Condition="'$(OnyxPostCompilation)' == 'true'">
-        <Message Text="Running OnyxPostCompileTask on $(TargetPath)" Importance="High" />
-        <OnyxPostCompileTask TargetPath="$(TargetPath)" />
+    <Target Name="CopyToLocalFeed" AfterTargets="Pack">
+        <Message Text="Copying package to local feed..." Importance="High" />
+        <Copy
+                SourceFiles="$(PackageOutputPath)$(PackageId).$(Version).nupkg"
+                DestinationFolder="$(LocalNuGetFeed)" />
     </Target>
 
+    <ItemGroup>
+        <None Include="build\Onyx.Attack.targets" Pack="true" PackagePath="build" />
+        <None Include="FodyWeavers.xml" Pack="true" PackagePath="build" />
+        <None Include="FodyWeavers.xml">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 </Project>
