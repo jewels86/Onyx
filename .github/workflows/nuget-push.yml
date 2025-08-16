@@ -45,12 +45,12 @@ jobs:
 
       - name: Update csproj version
         run: |
-          dotnet msbuild ./src/$PROJECT_NAME/$PROJECT_NAME.csproj \
+          dotnet msbuild ./$PROJECT_NAME/$PROJECT_NAME.csproj \
             /t:UpdateVersion /p:Version=$PACKAGE_VERSION
 
       - name: Pack NuGet package
         run: |
-          dotnet pack ./src/$PROJECT_NAME/$PROJECT_NAME.csproj \
+          dotnet pack ./$PROJECT_NAME/$PROJECT_NAME.csproj \
             -c Release -o ./nupkg /p:PackageVersion=$PACKAGE_VERSION
 
       - name: Push to NuGet
