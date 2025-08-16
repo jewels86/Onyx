@@ -19,16 +19,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Fody" Version="6.9.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
         <PackageReference Include="Microsoft.Build" Version="17.14.8" />
         <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.8" />
         <PackageReference Include="Onyx.Shared" Version="0.0.1" />
-    </ItemGroup>
-    <ItemGroup Condition="'$(OnyxPostCompilation)' == 'true'">
-        
     </ItemGroup>
 
     <PropertyGroup>
@@ -41,12 +34,4 @@
                 SourceFiles="$(PackageOutputPath)$(PackageId).$(Version).nupkg"
                 DestinationFolder="$(LocalNuGetFeed)" />
     </Target>
-
-    <ItemGroup>
-        <None Include="build\Onyx.Attack.targets" Pack="true" PackagePath="build" />
-        <None Include="FodyWeavers.xml" Pack="true" PackagePath="build" />
-        <None Include="FodyWeavers.xml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
 </Project>

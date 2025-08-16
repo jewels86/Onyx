@@ -4,7 +4,6 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <OnyxPostCompilation>true</OnyxPostCompilation>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,11 +11,32 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.43">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="Onyx.Attack" Version="0.1.0" />
     </ItemGroup>
 
-    <Target Name="PostBuild" AfterTargets="Build">
+    <Target Name="MergeAllDependencies" AfterTargets="AfterBuild">
+        <!-- Make a temp folder (optional) -->
+        <MakeDir Directories="$(TargetDir)MergedTemp" />
+
+        <!-- Grab all DLLs in output folder -->
+        <ItemGroup>
+            <AssembliesToMerge Include="$(TargetDir)*.dll" />
+        </ItemGroup>
+
+        <!-- Run ILRepack as an MSBuild task -->
+        <ILRepack
+                OutputFile="$(TargetDir)MergedTemp\Crimson.dll"
+                Internalize="true"
+                InputAssemblies="@(AssembliesToMerge)" />
+
+        <!-- Copy the merged DLL into your plugin folder -->
         <MakeDir Directories="$(MSBuildProjectDirectory)\..\ProjectDashboard.Web\Plugins" />
-        <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(MSBuildProjectDirectory)\..\ProjectDashboard.Web\Plugins\" />
+        <Copy SourceFiles="$(TargetDir)MergedTemp\Crimson.dll" DestinationFolder="$(MSBuildProjectDirectory)\..\ProjectDashboard.Web\Plugins\" />
     </Target>
+
+
 </Project>

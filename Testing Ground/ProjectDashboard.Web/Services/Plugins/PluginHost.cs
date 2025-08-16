@@ -16,12 +16,14 @@ public class PluginHost
         {
             try
             {
+                Console.WriteLine($"[PluginHost] Loading plugin from: {file}");
                 var asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.GetFullPath(file));
                 var types = asm.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
                 foreach (var t in types)
                 {
                     if (Activator.CreateInstance(t) is IPlugin p)
                     {
+                        Console.WriteLine($"[PluginHost] Loaded plugin: {p.Name}");
                         _plugins.Add(p);
                     }
                 }
