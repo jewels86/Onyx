@@ -5,27 +5,23 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <UsingTask TaskName="Onyx.Attack.POCCreationTask" AssemblyFile="$(TargetDir)publish\Onyx.Attack.dll" />
-
     <ItemGroup>
       <ProjectReference Include="..\ProjectDashboard.Abstractions\ProjectDashboard.Abstractions.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Onyx.Attack" Version="0.1.0" />
+      <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
+      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
+      <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.7" />
+      <PackageReference Include="Onyx.Attack" Version="0.1.1" />
     </ItemGroup>
+    
+    <Target Name="CreatePOC" AfterTargets="AfterBuild">
+        <Message Text="Creating POC..." Importance="High" />
+        <Exec Command="dotnet $(PkgOnyx_Command)\lib\net9.0\Onyx.Command.dll -- poc" />
+    </Target>
 
-    <Target Name="CreatePOC" AfterTargets="AfterBuild" >
-        <Message Text="$(TargetPath)" Importance="high" />
-        <Message Text="$(TargetDir)publish\Onyx.Attack.dll" Importance="high" />
-        <Message Text="Attack found" Condition="Exists('$(TargetDir)publish\Onyx.Attack.dll')" Importance="high" />
-        
-        <POCCreationTask
-                UdcTargetPath="$(TargetPath)"
-                DependenciesDirectory="$(TargetDir)publish"
-                OutputPath="$(TargetDir)Crimson.POC.dll"
-        />
-
+    <Target Name="CopyToDirectory" AfterTargets="AfterBuild" >
         <MakeDir Directories="$(MSBuildProjectDirectory)\..\ProjectDashboard.Web\Plugins" />
         <Copy SourceFiles="$(TargetDir)Crimson.POC.dll" DestinationFolder="$(MSBuildProjectDirectory)\..\ProjectDashboard.Web\Plugins\" />
     </Target>

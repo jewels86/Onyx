@@ -1,26 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <OutputType>Exe</OutputType>
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.1.1</Version>
-        <Authors>Jewels</Authors>
+        <Version>0.0.2</Version>
+        <Title>Onyx.Command</Title>
+        <Description>A command-line interface for Onyx.</Description>
         <PackageProjectUrl>https://github.com/jewels86/Onyx</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/jewels86/Onyx/blob/main/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/jewels86/Onyx.git</RepositoryUrl>
-        <RepositoryType>Git</RepositoryType>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Title>Onyx.Attack</Title>
-        <Description>A C# toolkit for exploiting untrusted code exploitation.</Description>
+        <RepositoryType>GIt</RepositoryType>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <IsPackable>true</IsPackable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Authors>Jewels</Authors>
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>onyx</ToolCommandName>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Build" Version="17.14.8" />
-        <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.8" />
-        <PackageReference Include="Onyx.Shared" Version="0.0.1" />
+      <PackageReference Include="Onyx.Attack" Version="0.1.1" />
+      <PackageReference Include="Spectre.Console.Cli" Version="0.50.0" />
     </ItemGroup>
 
     <PropertyGroup>
