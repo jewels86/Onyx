@@ -2,13 +2,14 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Mono.Cecil;
 using HarmonyLib;
+using MonoMod.Utils;
 using Onyx.Shared;
 
 namespace Onyx.Shared;
 
 public static class PostCompilation
 {
-    public static TypeDefinition ImportType(TypeDefinition type, ModuleDefinition target)
+    public static TypeDefinition ImportType(TypeDefinition type, ModuleDefinition target, bool add = true)
     {
         var newType = new TypeDefinition(
             type.Namespace, 
@@ -35,6 +36,7 @@ public static class PostCompilation
                     param.Attributes, 
                     target.ImportReference(param.ParameterType)));
             }
+            newMethod.CustomAttributes.AddRange(method.CustomAttributes);
             newType.Methods.Add(newMethod);
         }
         foreach (var property in type.Properties)
@@ -53,6 +55,12 @@ public static class PostCompilation
             }
             newType.Properties.Add(newProperty);
         }
+        newType.BaseType = type.BaseType;
+        newType.Attributes = type.Attributes;
+        newType.CustomAttributes.AddRange(type.CustomAttributes);
+        newType.Interfaces.AddRange(type.Interfaces);
+        
+        if (add) target.Types.Add(newType);
 
         return newType;
     }
