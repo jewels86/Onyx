@@ -20,7 +20,10 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Build" Version="17.14.8" />
         <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.14.8" />
-        <PackageReference Include="Onyx.Shared" Version="0.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Onyx.Shared\Onyx.Shared.csproj" />
     </ItemGroup>
 
     <PropertyGroup>

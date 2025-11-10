@@ -36,6 +36,7 @@ public static partial class Compilation
             {
                 try { File.Delete(assembly); }
                 catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
             }
             
             Tracked.Clear();

@@ -61,7 +61,7 @@ public static partial class Compilation
     #endregion
     #region Compliation
     public static (Assembly, TempContext) Compile(string code, string? assemblyName = null, TempContext? tctx = null,
-        Action<string>? beforeLoad = null)
+        Action<string>? beforeLoad = null, List<MetadataReference>? extraReferences = null)
     {
         if (assemblyName == null) assemblyName = NewGUID(8, true);
         var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
@@ -69,6 +69,7 @@ public static partial class Compilation
 
         var references = tpa.Split(Path.PathSeparator)
             .Select(path => MetadataReference.CreateFromFile(path))
+            .Concat(extraReferences ?? [])
             .ToList();
 
         var tree = CSharpSyntaxTree.ParseText(code);

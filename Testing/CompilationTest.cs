@@ -7,12 +7,12 @@ public class CompilationTest
     public static async Task Run()
     {
         object? result = await Compilation.Run("1 + 1");
-        Console.WriteLine(result);
+        Console.WriteLine($"await Compilation.Run(\"1 + 1\") returned {result}");
 
         int x = 1;
         int y = 2;
-        Console.WriteLine(Reflection.FromObject(() => x).Name);
-        Console.WriteLine(await Compilation.ICC("return x + y;", [() => x, () => y])());
+        Console.WriteLine($"Reflection found name for x: {Reflection.FromObject(() => x).Name}");
+        Console.WriteLine($"ICC x + y returned {await Compilation.ICC("return x + y;", [() => x, () => y])()}");
         
         var code = @"
             using System;
@@ -26,9 +26,10 @@ public class CompilationTest
         {
             Type t = asm.GetType("MyClass") ?? throw new Exception("Type MyClass not found");
             dynamic myClass = Activator.CreateInstance(t, 12) ?? throw new Exception("Failed to create MyClass instance");
+            Console.WriteLine("MyClass instance created, printing X:");
             myClass.PrintX();
             return myClass.X;
         });
-        Console.WriteLine(result2);
+        Console.WriteLine($"CompileAndUseTyped gave: {result2}");
     }
 }

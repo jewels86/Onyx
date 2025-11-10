@@ -11,11 +11,6 @@ public partial class Registry
     public List<ConcurrentDictionary<WeakType, List<InstanceNode>>> NodesOfType { get; } = [];
     public ConcurrentDictionary<int, DateTime> Times { get; } = new();
 
-    public Registry()
-    {
-        
-    }
-
     public void Build(Node top, Func<Node, bool>? filter = null, Action<Node, Exception>? onError = null, int depthLimit = -1)
     {
         int time = top.Time;
